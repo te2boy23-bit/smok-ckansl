@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --bg-deep: #04140d;
-  --bg-surface: #072417;
-  --bg-card: #0c3823;
-  --bg-card-elevated: #124d32;
+  --bg-deep: #082819;
+  --bg-surface: #0e3b26;
+  --bg-card: #134e33;
+  --bg-card-elevated: #1a6341;
   
-  --text-main: #ecfdf5;
-  --text-sub: #a7f3d0;
-  --text-muted: #6ee7b7;
+  --text-main: #f0fdf4;
+  --text-sub: #bbf7d0;
+  --text-muted: #86efac;
 
-  --accent-emerald: #059669;
-  --accent-lime: #84cc16;
+  --accent-emerald: #10b981;
+  --accent-lime: #4ade80;
   --accent-mint: #34d399;
-  --accent-forest: #064e3b;
+  --accent-leaf: #22c55e;
 
-  --background: #04140d;
-  --foreground: #ecfdf5;
+  --background: #082819;
+  --foreground: #f0fdf4;
 }
 
 @theme inline {
@@ -25,8 +25,12 @@
 }
 
 body {
-  background-color: #04140d;
-  color: #ecfdf5;
+  background-color: #082819;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(34, 197, 94, 0.18) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.15) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.1) 0px, transparent 60%);
+  color: #f0fdf4;
   font-family: var(--font-nunito-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
   min-height: 100vh;
   margin: 0;
@@ -44,12 +48,12 @@ h1, h2, h3, h4, h5, h6 {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #061f14;
+  background: #0a2d1d;
 }
 ::-webkit-scrollbar-thumb {
-  background: #14492e;
+  background: #1b5e3d;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #206d45;
+  background: #257d52;
 }

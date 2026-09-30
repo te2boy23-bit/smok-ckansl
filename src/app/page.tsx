@@ -85,13 +85,13 @@ export default function Home() {
   const totalSavedCount = Math.max(0, expectedCigarettes - totalSmokedCount);
 
   if (!isLoaded) {
-    return <div className="min-h-screen bg-[#04140d]" />;
+    return <div className="min-h-screen bg-[#082819]" />;
   }
 
   return (
-    <div className="min-h-screen bg-[#04140d] text-[#ecfdf5] flex flex-col font-sans selection:bg-[#10b981] selection:text-[#04140d] relative overflow-x-hidden">
-      <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-[#059669]/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-[#84cc16]/10 rounded-full blur-[140px] pointer-events-none" />
+    <div className="min-h-screen bg-[#082819] text-[#f0fdf4] flex flex-col font-sans selection:bg-[#22c55e] selection:text-[#052e16] relative overflow-x-hidden">
+      <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-[#22c55e]/15 rounded-full blur-[160px] pointer-events-none" />
+      <div className="fixed bottom-0 right-1/4 w-[500px] h-[500px] bg-[#4ade80]/15 rounded-full blur-[160px] pointer-events-none" />
 
       {showOnboarding && (
         <OnboardingFlow

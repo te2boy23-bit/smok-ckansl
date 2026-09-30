@@ -55,10 +55,12 @@ export function MainCounter({ profile, totalSmokedSinceStart }: MainCounterProps
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#10b981]/10 rounded-full blur-3xl pointer-events-none" />
 
       {/* 相棒「すいすい」の全肯定応援メッセージ吹き出し */}
-      <div className="bg-[#0b3320] border border-[#207248] rounded-2xl p-4 mb-6 shadow-md flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#059669] to-[#84cc16] flex items-center justify-center text-xl shrink-0">
-          🌱
-        </div>
+      <div className="bg-[#0e3b26] border border-[#206e46] rounded-2xl p-3.5 sm:p-4 mb-6 shadow-md flex items-center gap-3">
+        <img
+          src="/logo.png"
+          alt="すいすい"
+          className="w-11 h-11 rounded-2xl object-cover shadow-md border-2 border-[#34d399]/60 shrink-0"
+        />
         <div className="min-w-0">
           <span className="text-[10px] font-bold text-[#86efac] flex items-center gap-1">
             <Heart className="w-3 h-3 fill-[#34d399] text-[#34d399]" />

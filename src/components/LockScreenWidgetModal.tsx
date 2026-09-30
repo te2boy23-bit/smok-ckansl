@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, ReplacementIdea } from '@/types';
 import { MILESTONES, REPLACEMENT_IDEAS, PARTNER_TONE_MESSAGES } from '@/lib/constants';
-import { X, Smartphone, Heart, Sparkles, RefreshCw, Award, Compass, CheckCircle2 } from 'lucide-react';
+import { X, Smartphone, Heart, Sparkles, RefreshCw, Award, Compass, CheckCircle2, Bell, Copy, Maximize2, Minimize2, Check, ExternalLink } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface LockScreenWidgetModalProps {
@@ -15,19 +15,28 @@ export const LockScreenWidgetModal: React.FC<LockScreenWidgetModalProps> = ({
   profile,
   onClose,
 }) => {
-  const [widgetType, setWidgetType] = useState<'lover' | 'countdown' | 'roulette'>('lover');
-  const [currentTime, setCurrentTime] = useState({ time: '12:00', date: '9月30日 水曜日' });
-  const [rouletteIdea, setRouletteIdea] = useState<ReplacementIdea>(REPLACEMENT_IDEAS[0]);
-  const [isSpinning, setIsSpinning] = useState(false);
+  const [activeTab, setActiveTab] = useState<'notification' | 'standby' | 'widgy'>('notification');
+  const [currentTime, setCurrentTime] = useState({ time: '12:00', seconds: '00', date: '9月30日 水曜日' });
+  const [notificationStatus, setNotificationStatus] = useState<string>('default');
+  const [isCopied, setIsCopied] = useState(false);
+  const [isStandbyActive, setIsStandbyActive] = useState(false);
+  const [wakeLock, setWakeLock] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationStatus(Notification.permission);
+    }
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
       const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
       const dateStr = `${now.getMonth() + 1}月${now.getDate()}日 ${weekdays[now.getDay()]}曜日`;
-      setCurrentTime({ time: `${hours}:${minutes}`, date: dateStr });
+      setCurrentTime({ time: `${hours}:${minutes}`, seconds, date: dateStr });
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
@@ -50,45 +59,160 @@ export const LockScreenWidgetModal: React.FC<LockScreenWidgetModalProps> = ({
   const toneGreetings = PARTNER_TONE_MESSAGES[tone]?.homeGreeting || PARTNER_TONE_MESSAGES.deredere.homeGreeting;
   const greeting = toneGreetings[0];
 
-  const spinRoulette = () => {
-    setIsSpinning(true);
-    let count = 0;
-    const interval = setInterval(() => {
-      const randomIdx = Math.floor(Math.random() * REPLACEMENT_IDEAS.length);
-      setRouletteIdea(REPLACEMENT_IDEAS[randomIdx]);
-      count++;
-      if (count > 10) {
-        clearInterval(interval);
-        setIsSpinning(false);
+  // ① 方法1: Web通知をテスト送信する
+  const handleTestNotification = async () => {
+    if (!('Notification' in window)) {
+      alert('お使いのブラウザはWeb通知に対応していません');
+      return;
+    }
+
+    let perm = Notification.permission;
+    if (perm !== 'granted') {
+      perm = await Notification.requestPermission();
+      setNotificationStatus(perm);
+    }
+
+    if (perm === 'granted') {
+      try {
+        const notif = new Notification(`🌱 すいすい（${profile.partnerName}♡）`, {
+          body: `「${profile.name}くん、禁煙${totalDays}日目達成♡ ${greeting}」`,
+          icon: '/icon-192.png',
+          badge: '/icon-192.png',
+          tag: 'suisui-test',
+        });
+        notif.onclick = () => {
+          window.focus();
+          notif.close();
+        };
+
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.5 },
+          colors: ['#059669', '#84cc16', '#34d399'],
+        });
+      } catch (e) {
+        console.error('Notification error:', e);
+      }
+    } else {
+      alert('通知がブロックされています。ブラウザの設定から通知を許可してください');
+    }
+  };
+
+  // ② 方法2: スタンバイ常時点灯モード起動
+  const toggleStandby = async () => {
+    if (!isStandbyActive) {
+      setIsStandbyActive(true);
+      if ('wakeLock' in navigator) {
         try {
-          confetti({
-            particleCount: 40,
-            spread: 60,
-            origin: { y: 0.7 },
-            colors: ['#059669', '#84cc16', '#34d399'],
-          });
+          const lock = await (navigator as any).wakeLock.request('screen');
+          setWakeLock(lock);
         } catch {
           // ignore
         }
       }
-    }, 100);
+    } else {
+      setIsStandbyActive(false);
+      if (wakeLock) {
+        wakeLock.release();
+        setWakeLock(null);
+      }
+    }
   };
 
+  // ③ 方法3: Widgy用API URLをコピー
+  const widgetApiUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/api/widget?name=${encodeURIComponent(profile.name)}&partner=${encodeURIComponent(profile.partnerName)}&days=${totalDays}&saved=${savedMoney}&tone=${profile.partnerTone || 'deredere'}`
+    : '';
+
+  const handleCopyApiUrl = () => {
+    navigator.clipboard.writeText(widgetApiUrl);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 3000);
+    try {
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: ['#059669', '#34d399', '#84cc16'],
+      });
+    } catch {
+      // ignore
+    }
+  };
+
+  // スタンバイ全画面表示中
+  if (isStandbyActive) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#020a06] text-[#ecfdf5] flex flex-col justify-between p-6 sm:p-12 animate-fade-in select-none">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-[#10b981] animate-ping" />
+            <span className="text-xs font-black text-[#86efac] tracking-widest uppercase">
+              すいすい スタンバイ常時点灯
+            </span>
+          </div>
+          <button
+            onClick={toggleStandby}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#092b1b] hover:bg-[#0e3b26] text-[#86efac] border border-[#185334] text-xs font-bold transition cursor-pointer"
+          >
+            <Minimize2 className="w-4 h-4" />
+            <span>終了する</span>
+          </button>
+        </div>
+
+        {/* 巨大時計 ＆ 恋人メッセージ */}
+        <div className="my-auto text-center space-y-4">
+          <div className="text-xs sm:text-base font-semibold text-[#86efac] tracking-wide">
+            {currentTime.date}
+          </div>
+
+          <div className="flex items-baseline justify-center gap-2 font-mono">
+            <span className="text-7xl sm:text-9xl font-black tracking-tight text-[#ecfdf5]">
+              {currentTime.time}
+            </span>
+            <span className="text-2xl sm:text-4xl font-bold text-[#10b981]">
+              :{currentTime.seconds}
+            </span>
+          </div>
+
+          <div className="max-w-xl mx-auto bg-[#072417]/90 border-2 border-[#1c643e] rounded-3xl p-5 shadow-2xl space-y-2">
+            <div className="flex items-center justify-center gap-2 text-xs font-black text-[#a3e635]">
+              <Heart className="w-4 h-4 fill-[#a3e635]" />
+              <span>{profile.partnerName} からの応援</span>
+            </div>
+            <p className="text-sm sm:text-base font-bold text-[#ecfdf5] leading-relaxed">
+              「{profile.name}くん、禁煙{totalDays}日目達成♡ {greeting}」
+            </p>
+            <div className="flex justify-center gap-4 text-xs font-semibold text-[#6ee7b7] pt-2 border-t border-[#124228]">
+              <span>記念日まであと<strong className="text-[#a3e635] text-sm ml-1">{daysUntilNext}日</strong></span>
+              <span>節約額<strong className="text-[#34d399] text-sm ml-1">+{savedMoney.toLocaleString()}円</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center text-[10px] text-[#4d976f]">
+          ※スリープ防止が有効です。スマホを充電スタンドに置いて横向きにすると最高のととのい時計になります。
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#04140d]/85 backdrop-blur-md animate-fade-in">
-      <div className="bg-gradient-to-b from-[#092c1d] to-[#04150e] border-2 border-[#165a38] w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#04140d]/85 backdrop-blur-md animate-fade-in">
+      <div className="bg-gradient-to-b from-[#092c1d] to-[#04150e] border-2 border-[#165a38] w-full max-w-2xl rounded-[28px] sm:rounded-[36px] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* モーダルヘッダー */}
-        <div className="px-6 py-4 border-b border-[#14472c] bg-[#072417] flex items-center justify-between">
+        <div className="px-5 sm:px-6 py-4 border-b border-[#14472c] bg-[#072417] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-[#0c3924] rounded-2xl text-[#a3e635] border border-[#1a5f3b]">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-base text-[#ecfdf5]">
-                ウィジェット ＆ ロック画面設定
+              <h3 className="font-black text-sm sm:text-base text-[#ecfdf5]">
+                テスト期間中のロック画面表示（3つの方法）
               </h3>
-              <p className="text-[11px] text-[#86efac]">
-                アプリを開かなくても相棒が励ましてくれる3タイプのウィジェット
+              <p className="text-[10px] sm:text-[11px] text-[#86efac]">
+                アプリストア公開前でも、今すぐあなたのスマホでロック画面表示を体験できます！
               </p>
             </div>
           </div>
@@ -100,147 +224,192 @@ export const LockScreenWidgetModal: React.FC<LockScreenWidgetModalProps> = ({
           </button>
         </div>
 
-        {/* 3タイプのタブ切り替え */}
-        <div className="flex border-b border-[#123e27] bg-[#051c11] px-6 pt-3 gap-2 text-xs">
+        {/* 3つのタブ切り替え */}
+        <div className="flex border-b border-[#123e27] bg-[#051c11] px-4 sm:px-6 pt-3 gap-1 sm:gap-2 text-xs overflow-x-auto scrollbar-none">
           <button
-            onClick={() => setWidgetType('lover')}
-            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
-              widgetType === 'lover'
+            onClick={() => setActiveTab('notification')}
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer shrink-0 ${
+              activeTab === 'notification'
                 ? 'border-[#10b981] text-[#a3e635]'
                 : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
             }`}
           >
-            💚 ① 恋人風あまあま応援
+            🔔 ① ロック画面Web通知
           </button>
           <button
-            onClick={() => setWidgetType('countdown')}
-            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
-              widgetType === 'countdown'
+            onClick={() => setActiveTab('standby')}
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer shrink-0 ${
+              activeTab === 'standby'
                 ? 'border-[#10b981] text-[#a3e635]'
                 : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
             }`}
           >
-            🎁 ② ご褒美カウントダウン
+            📱 ② 全画面スタンバイ常時点灯
           </button>
           <button
-            onClick={() => setWidgetType('roulette')}
-            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
-              widgetType === 'roulette'
+            onClick={() => setActiveTab('widgy')}
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer shrink-0 ${
+              activeTab === 'widgy'
                 ? 'border-[#10b981] text-[#a3e635]'
                 : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
             }`}
           >
-            🎯 ③ 即効代案ルーレット
+            🧩 ③ Widgy無料ウィジェット連携
           </button>
         </div>
 
-        {/* プレビューコンテンツ */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-          {/* スマホ画面プレビューフレーム */}
-          <div className="mx-auto max-w-sm bg-gradient-to-b from-[#0a2f1e] via-[#061b11] to-[#04140d] border-4 border-[#1c5f3e] rounded-[40px] p-6 shadow-2xl relative overflow-hidden text-[#ecfdf5]">
-            {/* ノッチ */}
-            <div className="w-28 h-4 bg-[#031109] rounded-full mx-auto mb-5 border border-[#14482c] flex items-center justify-center">
-              <span className="text-[9px] text-[#34d399] font-bold">すいすいウィジェット</span>
-            </div>
-
-            {/* ロック画面の時計 */}
-            <div className="text-center mb-5">
-              <div className="text-xs font-semibold text-[#86efac] mb-1">{currentTime.date}</div>
-              <div className="text-4xl font-black tracking-tight text-[#ecfdf5]">{currentTime.time}</div>
-            </div>
-
-            {/* ① 恋人風あまあま応援ウィジェット */}
-            {widgetType === 'lover' && (
-              <div className="bg-[#0b3320]/95 backdrop-blur-md border border-[#21734a] rounded-3xl p-4 shadow-xl space-y-2.5 animate-fade-in">
+        {/* コンテンツエリア */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+          {/* ① 方法1: Web通知 */}
+          {activeTab === 'notification' && (
+            <div className="space-y-4">
+              <div className="bg-[#0b3320] border-2 border-[#1c643e] rounded-3xl p-5 shadow-lg space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-[#10b981] flex items-center justify-center text-[#04140d] text-xs font-black">
-                      ♥
-                    </span>
-                    <span className="text-xs font-black text-[#a7f3d0]">
-                      {profile.partnerName} からのメッセージ
-                    </span>
+                    <Bell className="w-5 h-5 text-[#a3e635]" />
+                    <h4 className="font-black text-sm text-[#ecfdf5]">
+                      ロック画面に相棒からの通知を届ける
+                    </h4>
                   </div>
-                  <span className="text-[10px] text-[#6ee7b7]">今すぐ届いた</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    notificationStatus === 'granted'
+                      ? 'bg-[#0f4428] text-[#34d399] border border-[#226e43]'
+                      : 'bg-[#072417] text-[#86efac]'
+                  }`}>
+                    {notificationStatus === 'granted' ? '通知許可済み ✓' : '未設定'}
+                  </span>
                 </div>
-                <p className="text-xs text-[#ecfdf5] font-semibold bg-[#072115] p-3 rounded-2xl border border-[#16482d] leading-relaxed">
-                  「{profile.name}くん、禁煙{totalDays}日目おめでとう♡ {greeting}」
+
+                <p className="text-xs text-[#a7f3d0] leading-relaxed">
+                  下のボタンを押すと、あなたのスマホやPCにテスト通知が飛びます。
+                  スマホをスリープさせて画面をつけた時、<strong>ロック画面に相棒からの甘い応援メッセージ</strong>が表示されます！
                 </p>
-                <div className="flex justify-between items-center text-[10px] text-[#86efac] pt-1">
-                  <span>記念日まであと<strong>{daysUntilNext}日</strong></span>
-                  <span className="text-[#a3e635] font-black">節約+{savedMoney.toLocaleString()}円</span>
-                </div>
-              </div>
-            )}
 
-            {/* ② ご褒美カウントダウンウィジェット */}
-            {widgetType === 'countdown' && (
-              <div className="bg-[#0b3320]/95 backdrop-blur-md border border-[#21734a] rounded-3xl p-4 shadow-xl space-y-3 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-[#a3e635] flex items-center gap-1.5">
-                    <Award className="w-4 h-4" /> ご褒美カウントダウン
-                  </span>
-                  <span className="text-[10px] bg-[#0e3b25] text-[#34d399] px-2 py-0.5 rounded-full border border-[#1b5b3a]">
-                    目標達成中
-                  </span>
-                </div>
-                <div className="bg-[#072115] p-3 rounded-2xl border border-[#16482d]">
-                  <span className="text-[10px] text-[#86efac] block">目標ご褒美</span>
-                  <h4 className="text-sm font-black text-[#ecfdf5]">{profile.targetReward || '極上サウナ'}</h4>
-                  <div className="flex items-baseline justify-between mt-2 pt-2 border-t border-[#133e27]">
-                    <span className="text-[10px] text-[#6ee7b7]">禁煙で浮いた金額</span>
-                    <span className="text-base font-black text-[#34d399]">+{savedMoney.toLocaleString()}円</span>
+                {/* 通知プレビューカード */}
+                <div className="bg-[#051c11] border border-[#195a38] rounded-2xl p-3.5 space-y-1">
+                  <div className="flex items-center justify-between text-[10px] text-[#6ee7b7]">
+                    <span className="font-bold flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-[#10b981]" />
+                      🌱 すいすい（{profile.partnerName}♡）
+                    </span>
+                    <span>たった今</span>
                   </div>
+                  <p className="text-xs font-semibold text-[#ecfdf5]">
+                    「{profile.name}くん、禁煙{totalDays}日目達成♡ {greeting}」
+                  </p>
                 </div>
-              </div>
-            )}
 
-            {/* ③ 即効代案ルーレットウィジェット */}
-            {widgetType === 'roulette' && (
-              <div className="bg-[#0b3320]/95 backdrop-blur-md border border-[#21734a] rounded-3xl p-4 shadow-xl space-y-3 animate-fade-in">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-[#a3e635] flex items-center gap-1.5">
-                    <Compass className="w-4 h-4" /> 吸いたい時の即効代案
-                  </span>
-                  <span className="text-[10px] text-[#6ee7b7]">ワンタップ起動</span>
-                </div>
-                <div className="bg-[#072115] p-3.5 rounded-2xl border border-[#16482d] text-center">
-                  <span className="text-2xl block mb-1">🌿</span>
-                  <h4 className="text-xs font-black text-[#ecfdf5]">{rouletteIdea.title}</h4>
-                  <p className="text-[10px] text-[#86efac] mt-1 line-clamp-2">{rouletteIdea.description}</p>
-                </div>
                 <button
                   type="button"
-                  onClick={spinRoulette}
-                  disabled={isSpinning}
-                  className="w-full py-2 bg-[#10b981] hover:bg-[#059669] text-[#04140d] font-black rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer text-xs"
+                  onClick={handleTestNotification}
+                  className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#059669] to-[#84cc16] hover:brightness-110 active:scale-95 text-[#04140d] font-black text-xs transition cursor-pointer shadow-lg flex items-center justify-center gap-2"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isSpinning ? 'animate-spin' : ''}`} />
-                  <span>{isSpinning ? 'ルーレット回転中…' : '代案ルーレットを回す！'}</span>
+                  <Bell className="w-4 h-4 stroke-[3]" />
+                  <span>今すぐロック画面に通知をテスト送信する！</span>
                 </button>
               </div>
-            )}
 
-            {/* ホームバー */}
-            <div className="w-32 h-1 bg-[#185334] rounded-full mx-auto mt-6" />
-          </div>
+              <div className="bg-[#072417] p-4 rounded-2xl border border-[#14472c] space-y-2 text-[#86efac]">
+                <h5 className="font-bold text-[#ecfdf5]">📱 iPhoneでロック画面通知を確実に受けるコツ</h5>
+                <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed">
+                  <li>Safari下部の共有ボタンから「<strong>ホーム画面に追加</strong>」してアプリ化します</li>
+                  <li>ホーム画面に追加されたアプリアイコンから開いて、通知を「許可」します</li>
+                  <li>これでiOS16.4以降なら、ロック画面にメッセージが届くようになります！</li>
+                </ol>
+              </div>
+            </div>
+          )}
 
-          {/* スマホへの設置方法ガイド */}
-          <div className="bg-[#072517] p-4 rounded-2xl border border-[#14472c] space-y-2 text-[#86efac]">
-            <h4 className="font-bold text-[#ecfdf5] flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
-              スマホのホーム画面・ロック画面に設置する手順
-            </h4>
-            <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed">
-              <li>ブラウザの「共有」または「メニュー」から「<strong>ホーム画面に追加</strong>」をタップ</li>
-              <li>追加したアプリアイコンから、いつでもワンタップで代案と記念日を確認できます</li>
-              <li>iOS16以降 / Android12以降では、常時点灯ディスプレイ対応のロック画面固定も可能です</li>
-            </ol>
-          </div>
+          {/* ② 方法2: スタンバイ常時点灯 */}
+          {activeTab === 'standby' && (
+            <div className="space-y-4">
+              <div className="bg-[#0b3320] border-2 border-[#1c643e] rounded-3xl p-5 shadow-lg space-y-3">
+                <div className="flex items-center gap-2">
+                  <Maximize2 className="w-5 h-5 text-[#a3e635]" />
+                  <h4 className="font-black text-sm text-[#ecfdf5]">
+                    デスク置き専用！常時点灯スタンバイクロック
+                  </h4>
+                </div>
+
+                <p className="text-xs text-[#a7f3d0] leading-relaxed">
+                  スマホの画面が自動で暗くならないスリープ防止モードです。
+                  机の上や充電スタンドに置いて、<strong>「禁煙時計 ＆ 恋人の応援」を常時光らせておく</strong>ことができます。
+                </p>
+
+                <button
+                  type="button"
+                  onClick={toggleStandby}
+                  className="w-full py-3.5 rounded-2xl bg-[#10b981] hover:bg-[#059669] active:scale-95 text-[#04140d] font-black text-xs transition cursor-pointer shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                  <span>常時点灯スタンバイモードを起動する（全画面）</span>
+                </button>
+              </div>
+
+              <div className="bg-[#072417] p-4 rounded-2xl border border-[#14472c] text-[#86efac] space-y-1.5">
+                <span className="font-bold text-[#ecfdf5] block">おすすめの使い方:</span>
+                <p className="text-[11px] leading-relaxed">
+                  仕事中や勉強中、タバコを吸いたくなりそうな時にスマホを横向きに置いておくだけで、リアルタイムに進む秒数と恋人の言葉があなたの盾になります！
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ③ 方法3: Widgy連携 */}
+          {activeTab === 'widgy' && (
+            <div className="space-y-4">
+              <div className="bg-[#0b3320] border-2 border-[#1c643e] rounded-3xl p-5 shadow-lg space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🧩</span>
+                  <h4 className="font-black text-sm text-[#ecfdf5]">
+                    無料アプリ「Widgy」で本物の四角いウィジェットを置く
+                  </h4>
+                </div>
+
+                <p className="text-xs text-[#a7f3d0] leading-relaxed">
+                  App Storeで無料配信されている大人気ウィジェットアプリ「Widgy」を使うと、
+                  <strong>ストア審査を待たずに、あなたのiPhoneのホーム画面やロック画面に本物のウィジェット</strong>を常駐させられます！
+                </p>
+
+                {/* 専用API URL */}
+                <div>
+                  <span className="text-[11px] font-bold text-[#86efac] block mb-1">
+                    あなた専用のウィジェットデータ連携URL
+                  </span>
+                  <div className="bg-[#051c11] border border-[#174f32] rounded-xl p-2.5 flex items-center justify-between gap-2">
+                    <span className="font-mono text-[10px] text-[#34d399] truncate flex-1">
+                      {widgetApiUrl}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyApiUrl}
+                      className="px-3 py-1.5 rounded-lg bg-[#10b981] hover:bg-[#059669] text-[#04140d] font-black text-xs transition cursor-pointer flex items-center gap-1 shrink-0"
+                    >
+                      {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                      <span>{isCopied ? 'コピー完了！' : 'URLコピー'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3ステップ手順 */}
+              <div className="bg-[#072417] p-4 rounded-2xl border border-[#14472c] space-y-2 text-[#86efac]">
+                <h5 className="font-bold text-[#ecfdf5]">3ステップでiPhoneにウィジェットを置く方法</h5>
+                <ol className="list-decimal list-inside space-y-1.5 text-[11px] leading-relaxed">
+                  <li>App Storeで「<strong>Widgy Widgets</strong>」（無料）をインストール</li>
+                  <li>Widgyを開き、新規作成 ➔「データソース」に上のコピーしたURLを貼り付け</li>
+                  <li>iPhoneのホーム画面またはロック画面を長押しして「＋」からWidgyを追加！</li>
+                </ol>
+                <p className="text-[10px] text-[#6ee7b7] pt-1 border-t border-[#123e27]">
+                  ※これでテスト期間中でも、リアルタイムに禁煙日数や恋人メッセージが反映されます！
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* モーダルフッター */}
-        <div className="px-6 py-4 border-t border-[#133f27] bg-[#061d13] flex justify-end">
+        <div className="px-5 sm:px-6 py-4 border-t border-[#133f27] bg-[#061d13] flex justify-end">
           <button
             onClick={onClose}
             className="px-6 py-2.5 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-[#04140d] font-black text-xs transition cursor-pointer shadow-lg"

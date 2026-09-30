@@ -108,7 +108,6 @@ export function OnboardingFlow({ initialProfile, onComplete }: OnboardingFlowPro
       quitMotive: selectedMotives,
       targetReward: selectedReward.name,
       targetRewardCost: selectedReward.cost,
-      language: initialProfile.language || 'ja',
       useFuturePrice,
       isOnboarded: true,
       authProvider,

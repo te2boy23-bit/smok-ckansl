@@ -123,26 +123,24 @@ export function OnboardingFlow({ initialProfile, onComplete }: OnboardingFlowPro
         {/* トップバー：相棒すいすいバナー */}
         <div className="px-6 py-4 bg-[#072417] border-b border-[#13442a] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img
-              src="/logo.png"
-              alt="すいすいロゴ"
-              className="w-11 h-11 rounded-2xl object-cover shadow-md border-2 border-[#34d399]/60 shrink-0"
-            />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#059669] to-[#84cc16] flex items-center justify-center text-xl shadow-md border border-[#34d399]/40">
+              🌱
+            </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-[#f0fdf4]">
+                <h2 className="text-base font-black text-[#ecfdf5]">
                   すいすい（息抜き相棒）
                 </h2>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#11492d] text-[#86efac] border border-[#227047]">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#0d3f28] text-[#a3e635] border border-[#217349]">
                   {step === 1 ? 'STEP 1 / 2' : 'STEP 2 / 2'}
                 </span>
               </div>
-              <p className="text-[11px] text-[#bbf7d0]">
+              <p className="text-[11px] text-[#86efac]">
                 {step === 1 ? '禁煙カルテ・習慣アンケート' : 'カルテ完成＆アカウント連携'}
               </p>
             </div>
           </div>
-          <div className="text-right text-xs text-[#86efac]">
+          <div className="text-right text-xs text-[#6ee7b7]">
             {step === 1 ? '質問に答えるだけ♪' : 'あと1分で完了！'}
           </div>
         </div>
@@ -151,12 +149,8 @@ export function OnboardingFlow({ initialProfile, onComplete }: OnboardingFlowPro
         {step === 1 && (
           <div className="p-6 space-y-6">
             {/* 相棒からのメッセージ */}
-            <div className="bg-[#0e3b26] border border-[#206e46] rounded-2xl p-4 flex items-start gap-3.5">
-              <img
-                src="/logo.png"
-                alt="すいすい"
-                className="w-12 h-12 rounded-2xl object-cover shadow-md border border-[#34d399]/50 shrink-0"
-              />
+            <div className="bg-[#0b3320] border border-[#1b5d3a] rounded-2xl p-4 flex items-start gap-3">
+              <span className="text-2xl">💚</span>
               <div className="text-xs text-[#ecfdf5] leading-relaxed">
                 <strong className="text-[#a3e635] block mb-0.5">
                   「こんにちは！あなたの息抜き相棒『すいすい』だよ！」

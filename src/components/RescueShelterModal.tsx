@@ -154,11 +154,9 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
             <div className="space-y-4">
               <div className="bg-[#0b3320] border-2 border-[#1c643e] rounded-3xl p-5 shadow-lg relative overflow-hidden">
                 <div className="flex items-start gap-3 mb-3">
-                  <img
-                    src="/logo.png"
-                    alt="すいすい"
-                    className="w-11 h-11 rounded-2xl object-cover shadow-md border-2 border-[#34d399]/60 shrink-0"
-                  />
+                  <div className="w-10 h-10 rounded-2xl bg-[#10b981] text-[#04140d] flex items-center justify-center font-black text-xl shrink-0">
+                    🌱
+                  </div>
                   <div>
                     <span className="text-[10px] font-bold text-[#86efac] block">
                       息抜き相棒「{profile.partnerName}」より

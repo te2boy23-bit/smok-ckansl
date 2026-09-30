@@ -1,121 +1,64 @@
 'use client';
 
 import React from 'react';
-import { UserProfile, AppLanguage } from '@/types';
-import { TRANSLATIONS } from '@/lib/translations';
-import { Smartphone, Settings, Heart, Globe, Sparkles } from 'lucide-react';
+import { UserProfile } from '@/types';
+import { Smartphone, Settings, Heart, ShieldCheck } from 'lucide-react';
 
 interface NavbarProps {
   profile: UserProfile;
-  language?: AppLanguage;
-  onToggleLanguage?: () => void;
   onOpenWidgetModal: () => void;
   onOpenProfileModal: () => void;
-  onOpenPremiumModal?: () => void;
 }
 
-export function Navbar({
-  profile,
-  language = 'ja',
-  onToggleLanguage,
-  onOpenWidgetModal,
-  onOpenProfileModal,
-  onOpenPremiumModal,
-}: NavbarProps) {
-  const t = TRANSLATIONS[language] || TRANSLATIONS.ja;
-
+export function Navbar({ profile, onOpenWidgetModal, onOpenProfileModal }: NavbarProps) {
   const toneLabel = {
-    deredere: t.partnerToneDeredere,
-    forest: t.partnerToneForest,
-    passionate: t.partnerTonePassionate,
+    deredere: 'デレデレ全肯定♡',
+    forest: '癒やし系森林浴🌲',
+    passionate: '体育会系熱血🔥',
   }[profile.partnerTone || 'deredere'];
 
-  const isGoogleConnected = !!profile.googleAccount;
-  const isPremium = !!profile.isPremium;
-
   return (
-    <header className="sticky top-0 z-40 bg-[#0a2f1d]/95 backdrop-blur-md border-b border-[#185536] shadow-lg">
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-        {/* 左側：ロゴ画像（新ロゴ） ＆ アプリ名・相棒 */}
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="relative shrink-0">
-            <img
-              src="/logo.png"
-              alt="すいすいロゴ"
-              className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl object-cover shadow-md shadow-[#10b981]/20 border-2 border-[#34d399]/60"
-            />
-            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[#4ade80] border-2 border-[#0a2f1d] rounded-full animate-pulse" />
+    <header className="sticky top-0 z-40 bg-[#072417]/95 backdrop-blur-md border-b border-[#14472c] shadow-lg">
+      <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#059669] via-[#10b981] to-[#84cc16] flex items-center justify-center text-[#04140d] text-lg font-black shadow-md shadow-[#059669]/40 border border-[#34d399]/40">
+              🌱
+            </div>
+            <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-[#84cc16] border-2 border-[#072417] rounded-full animate-pulse" />
           </div>
 
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-base sm:text-lg font-black tracking-tight text-[#f0fdf4]">
-                {t.appName}
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-base font-black tracking-tight text-[#ecfdf5]">
+                すいすい
               </span>
-              <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#11492d] text-[#86efac] border border-[#227047] truncate max-w-[130px] sm:max-w-none">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0d3f28] text-[#a3e635] border border-[#1b633b]">
                 {toneLabel}
               </span>
             </div>
-            <div className="flex items-center gap-1 text-[11px] sm:text-xs text-[#bbf7d0] font-semibold truncate">
-              <span className="truncate">{profile.name}</span>
-              <Heart className="w-3 h-3 fill-[#22c55e] text-[#22c55e] shrink-0" />
-              <span className="truncate">{t.companionOf}{profile.partnerName}</span>
+            <div className="flex items-center gap-1 text-xs text-[#a7f3d0] font-semibold mt-0.5">
+              <span>{profile.name}</span>
+              <Heart className="w-3 h-3 fill-[#10b981] text-[#10b981]" />
+              <span>相棒: {profile.partnerName}</span>
             </div>
           </div>
         </div>
 
-        {/* 右側：コントロールボタン群（レスポンシブ配置） */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* 言語切り替えトグル */}
-          {onToggleLanguage && (
-            <button
-              onClick={onToggleLanguage}
-              className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] font-black text-[#bbf7d0] bg-[#0e3f28] hover:bg-[#145638] active:scale-95 rounded-xl border border-[#206e46] transition cursor-pointer"
-              title="言語切り替え / Switch Language"
-            >
-              <Globe className="w-3.5 h-3.5 text-[#34d399]" />
-              <span>{language === 'ja' ? 'EN' : 'JP'}</span>
-            </button>
-          )}
-
-          {/* Google / プレミアムプランボタン */}
-          {onOpenPremiumModal && (
-            <button
-              onClick={onOpenPremiumModal}
-              className={`flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] font-black rounded-xl border transition cursor-pointer ${
-                isPremium
-                  ? 'bg-gradient-to-r from-[#10b981] to-[#4ade80] text-[#052e16] border-[#86efac] shadow-md'
-                  : isGoogleConnected
-                  ? 'bg-[#124d32] text-[#f0fdf4] border-[#22c55e]'
-                  : 'bg-[#0e3f28] text-[#bbf7d0] border-[#206e46] hover:bg-[#145638]'
-              }`}
-              title="Google連携 ＆ プレミアムプラン"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#4ade80]" />
-              <span className="hidden sm:inline">
-                {isPremium ? t.premiumBadge : isGoogleConnected ? t.googleConnected : t.goPremium}
-              </span>
-              <span className="sm:hidden">
-                {isPremium ? 'PRO' : 'G'}
-              </span>
-            </button>
-          )}
-
-          {/* ウィジェットボタン */}
+        <div className="flex items-center gap-2">
           <button
             onClick={onOpenWidgetModal}
-            className="flex items-center gap-1 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-bold text-[#f0fdf4] bg-[#0e3f28] hover:bg-[#145638] active:scale-95 transition-all rounded-xl border border-[#206e46] cursor-pointer"
-            title={t.widgetBtn}
+            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-[#ecfdf5] bg-[#0c3621] hover:bg-[#12492d] active:scale-95 transition-all rounded-xl border border-[#1c5d3a] shadow-sm hover:border-[#10b981] cursor-pointer"
+            title="ウィジェット・ロック画面設定"
           >
             <Smartphone className="w-4 h-4 text-[#34d399]" />
-            <span className="hidden md:inline">{t.widgetBtn}</span>
+            <span className="hidden sm:inline">ウィジェット</span>
           </button>
 
-          {/* 設定ボタン */}
           <button
             onClick={onOpenProfileModal}
-            className="p-1.5 sm:p-2 text-[#bbf7d0] bg-[#0e3f28] hover:bg-[#145638] hover:text-[#f0fdf4] active:scale-95 transition-all rounded-xl border border-[#206e46] cursor-pointer"
-            title={t.settingsBtn}
+            className="p-2 text-[#a7f3d0] bg-[#0c3621] hover:bg-[#12492d] hover:text-[#ecfdf5] active:scale-95 transition-all rounded-xl border border-[#1c5d3a] cursor-pointer"
+            title="設定・マイカルテ"
           >
             <Settings className="w-4 h-4" />
           </button>

@@ -8,6 +8,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   name: 'チャレンジャー',
   partnerName: 'すいすい',
   partnerTone: 'deredere',
+  language: 'ja',
   startDate: new Date().toISOString(),
   dailyCigarettesBefore: 15,
   pricePerPack: 600,
@@ -19,6 +20,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   targetRewardCost: 3000,
   useFuturePrice: true,
   isOnboarded: false,
+  isPremium: false,
 };
 
 export function getStoredProfile(): UserProfile {

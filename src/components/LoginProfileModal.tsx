@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserProfile, PartnerTone } from '@/types';
+import { UserProfile, PartnerTone, AppLanguage } from '@/types';
 import { BRAND_DATABASE, TARGET_REWARDS } from '@/lib/constants';
-import { X, User, Heart, Calendar, Cigarette, Check, Sparkles, Award } from 'lucide-react';
+import { X, User, Heart, Calendar, Cigarette, Check, Sparkles, Award, Globe } from 'lucide-react';
 
 interface LoginProfileModalProps {
   profile: UserProfile;
@@ -19,6 +19,7 @@ export const LoginProfileModal: React.FC<LoginProfileModalProps> = ({
   const [name, setName] = useState(profile.name || 'チャレンジャー');
   const [partnerName, setPartnerName] = useState(profile.partnerName || 'すいすい');
   const [partnerTone, setPartnerTone] = useState<PartnerTone>(profile.partnerTone || 'deredere');
+  const [language, setLanguage] = useState<AppLanguage>(profile.language || 'ja');
   const [startDate, setStartDate] = useState(profile.startDate || new Date().toISOString());
   const [dailyCigarettes, setDailyCigarettes] = useState(profile.dailyCigarettesBefore || 15);
   const [selectedBrands, setSelectedBrands] = useState<string[]>(profile.brands || ['パーラメント (KSボックス等)']);
@@ -58,6 +59,7 @@ export const LoginProfileModal: React.FC<LoginProfileModalProps> = ({
       name,
       partnerName,
       partnerTone,
+      language,
       startDate,
       dailyCigarettesBefore: Number(dailyCigarettes),
       brands: selectedBrands,
@@ -72,20 +74,20 @@ export const LoginProfileModal: React.FC<LoginProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#04140d]/85 backdrop-blur-md animate-fade-in">
-      <div className="bg-gradient-to-b from-[#092c1d] to-[#04150e] border-2 border-[#165a38] w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#04140d]/85 backdrop-blur-md animate-fade-in">
+      <div className="bg-gradient-to-b from-[#092c1d] to-[#04150e] border-2 border-[#165a38] w-full max-w-xl rounded-[28px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* ヘッダー */}
-        <div className="px-6 py-4 border-b border-[#14472c] flex items-center justify-between bg-[#072417]">
+        <div className="px-5 sm:px-6 py-4 border-b border-[#14472c] flex items-center justify-between bg-[#072417]">
           <div className="flex items-center gap-2.5">
             <div className="p-2 bg-[#0c3924] rounded-2xl text-[#a3e635] border border-[#1a5f3b]">
               <User className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-base text-[#ecfdf5]">
+              <h3 className="font-black text-sm sm:text-base text-[#ecfdf5]">
                 マイ設定 ＆ カルテ変更
               </h3>
-              <p className="text-[11px] text-[#86efac]">
-                相棒の褒めトーンや目標ご褒美、銘柄をいつでも変更できます
+              <p className="text-[10px] sm:text-[11px] text-[#86efac]">
+                言語や相棒の褒めトーン、目標ご褒美をいつでも変更できます
               </p>
             </div>
           </div>
@@ -98,9 +100,43 @@ export const LoginProfileModal: React.FC<LoginProfileModalProps> = ({
         </div>
 
         {/* フォーム */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+        <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 flex-1 text-xs">
+          {/* 言語設定 */}
+          <div>
+            <label className="font-bold text-[#86efac] mb-1.5 flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-[#a3e635]" />
+              表示言語 / Language
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setLanguage('ja')}
+                className={`p-3 rounded-2xl border text-center transition cursor-pointer flex items-center justify-center gap-2 ${
+                  language === 'ja'
+                    ? 'bg-[#0f4428] border-[#a3e635] text-[#ecfdf5] font-black'
+                    : 'bg-[#072517] border-[#15462c] text-[#86efac]'
+                }`}
+              >
+                <span>🇯🇵</span>
+                <span>日本語 (Japanese)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`p-3 rounded-2xl border text-center transition cursor-pointer flex items-center justify-center gap-2 ${
+                  language === 'en'
+                    ? 'bg-[#0f4428] border-[#a3e635] text-[#ecfdf5] font-black'
+                    : 'bg-[#072517] border-[#15462c] text-[#86efac]'
+                }`}
+              >
+                <span>🇺🇸</span>
+                <span>English (英語)</span>
+              </button>
+            </div>
+          </div>
+
           {/* 名前と相棒 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="font-bold text-[#86efac] mb-1.5 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-[#a3e635]" />
@@ -140,49 +176,49 @@ export const LoginProfileModal: React.FC<LoginProfileModalProps> = ({
               <button
                 type="button"
                 onClick={() => setPartnerTone('deredere')}
-                className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                className={`p-2.5 sm:p-3 rounded-2xl border text-center transition cursor-pointer ${
                   partnerTone === 'deredere'
                     ? 'bg-[#0f4428] border-[#a3e635] text-[#ecfdf5] shadow-md'
                     : 'bg-[#072517] border-[#15462c] text-[#86efac]'
                 }`}
               >
-                <span className="text-lg block mb-0.5">🥰</span>
-                <span className="font-bold text-[11px] block">デレデレ全肯定</span>
+                <span className="text-base sm:text-lg block mb-0.5">🥰</span>
+                <span className="font-bold text-[10px] sm:text-[11px] block">デレデレ</span>
                 <span className="text-[9px] text-[#6ee7b7]">甘口・愛嬌♡</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setPartnerTone('forest')}
-                className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                className={`p-2.5 sm:p-3 rounded-2xl border text-center transition cursor-pointer ${
                   partnerTone === 'forest'
                     ? 'bg-[#0f4428] border-[#a3e635] text-[#ecfdf5] shadow-md'
                     : 'bg-[#072517] border-[#15462c] text-[#86efac]'
                 }`}
               >
-                <span className="text-lg block mb-0.5">🌲</span>
-                <span className="font-bold text-[11px] block">癒やし系森林浴</span>
+                <span className="text-base sm:text-lg block mb-0.5">🌲</span>
+                <span className="font-bold text-[10px] sm:text-[11px] block">森林浴</span>
                 <span className="text-[9px] text-[#6ee7b7]">穏やか・清流</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setPartnerTone('passionate')}
-                className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                className={`p-2.5 sm:p-3 rounded-2xl border text-center transition cursor-pointer ${
                   partnerTone === 'passionate'
                     ? 'bg-[#0f4428] border-[#a3e635] text-[#ecfdf5] shadow-md'
                     : 'bg-[#072517] border-[#15462c] text-[#86efac]'
                 }`}
               >
-                <span className="text-lg block mb-0.5">🔥</span>
-                <span className="font-bold text-[11px] block">体育会系熱血</span>
+                <span className="text-base sm:text-lg block mb-0.5">🔥</span>
+                <span className="font-bold text-[10px] sm:text-[11px] block">熱血</span>
                 <span className="text-[9px] text-[#6ee7b7]">熱血激賞！</span>
               </button>
             </div>
           </div>
 
           {/* 目標ご褒美 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <div>
               <label className="font-bold text-[#86efac] mb-1.5 flex items-center gap-1.5">
                 <Award className="w-3.5 h-3.5 text-[#a3e635]" />
@@ -266,7 +302,7 @@ export const LoginProfileModal: React.FC<LoginProfileModalProps> = ({
             <label className="font-bold text-[#86efac] mb-1.5 block">
               選択中の銘柄（複数可）
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-[#051c11] rounded-2xl border border-[#14472c]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-36 overflow-y-auto p-2 bg-[#051c11] rounded-2xl border border-[#14472c]">
               {BRAND_DATABASE.map((brand) => {
                 const isSelected = selectedBrands.includes(brand.name);
                 const displayPrice = useFuturePrice && brand.futurePrice ? brand.futurePrice : brand.currentPrice;

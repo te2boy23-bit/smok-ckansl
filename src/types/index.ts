@@ -9,12 +9,21 @@ export interface BrandDetail {
 }
 
 export type PartnerTone = 'deredere' | 'forest' | 'passionate';
+export type AppLanguage = 'ja' | 'en';
+
+export interface GoogleAccount {
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  connectedAt: string;
+}
 
 export interface UserProfile {
   id: string;
   name: string;
   partnerName: string;
   partnerTone: PartnerTone;
+  language: AppLanguage;
   startDate: string;
   dailyCigarettesBefore: number;
   pricePerPack: number;
@@ -27,6 +36,8 @@ export interface UserProfile {
   useFuturePrice?: boolean;
   isOnboarded?: boolean;
   authProvider?: 'line' | 'apple' | 'google' | 'email';
+  googleAccount?: GoogleAccount;
+  isPremium?: boolean;
 }
 
 export interface SmokingLog {

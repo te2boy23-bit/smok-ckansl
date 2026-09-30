@@ -118,41 +118,47 @@ export function OnboardingFlow({ initialProfile, onComplete }: OnboardingFlowPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#04140d]/95 backdrop-blur-xl flex items-center justify-center p-4">
-      <div className="bg-gradient-to-b from-[#092b1d] via-[#061f14] to-[#04150e] border-2 border-[#155335] w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden my-6">
-        {/* トップバー：相棒すいすいバナー */}
-        <div className="px-6 py-4 bg-[#072417] border-b border-[#13442a] flex items-center justify-between">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#04140d]/90 backdrop-blur-xl flex flex-col items-center justify-start p-3 sm:p-6">
+      <div className="bg-gradient-to-b from-[#0a2f1d] via-[#082819] to-[#051c11] border-2 border-[#206e46] w-full max-w-2xl rounded-[28px] sm:rounded-[36px] shadow-2xl overflow-hidden my-4 sm:my-8">
+        {/* トップバー：相棒すいすいバナー（新ロゴ入り） */}
+        <div className="px-5 sm:px-6 py-4 bg-[#0c3924] border-b border-[#185536] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#059669] to-[#84cc16] flex items-center justify-center text-xl shadow-md border border-[#34d399]/40">
-              🌱
-            </div>
+            <img
+              src="/logo.png?v=2"
+              alt="すいすいロゴ"
+              className="w-11 h-11 rounded-2xl object-cover shadow-md border-2 border-[#34d399]/60 shrink-0"
+            />
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-[#ecfdf5]">
+                <h2 className="text-base font-black text-[#f0fdf4]">
                   すいすい（息抜き相棒）
                 </h2>
-                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#0d3f28] text-[#a3e635] border border-[#217349]">
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#11492d] text-[#86efac] border border-[#227047]">
                   {step === 1 ? 'STEP 1 / 2' : 'STEP 2 / 2'}
                 </span>
               </div>
-              <p className="text-[11px] text-[#86efac]">
+              <p className="text-[11px] text-[#bbf7d0]">
                 {step === 1 ? '禁煙カルテ・習慣アンケート' : 'カルテ完成＆アカウント連携'}
               </p>
             </div>
           </div>
-          <div className="text-right text-xs text-[#6ee7b7]">
+          <div className="text-right text-xs text-[#86efac]">
             {step === 1 ? '質問に答えるだけ♪' : 'あと1分で完了！'}
           </div>
         </div>
 
         {/* STEP 1: 禁煙カルテ・習慣アンケート */}
         {step === 1 && (
-          <div className="p-6 space-y-6">
-            {/* 相棒からのメッセージ */}
-            <div className="bg-[#0b3320] border border-[#1b5d3a] rounded-2xl p-4 flex items-start gap-3">
-              <span className="text-2xl">💚</span>
-              <div className="text-xs text-[#ecfdf5] leading-relaxed">
-                <strong className="text-[#a3e635] block mb-0.5">
+          <div className="p-5 sm:p-6 space-y-5 sm:space-y-6">
+            {/* 相棒からのメッセージ（新ロゴ入り） */}
+            <div className="bg-[#0e3b26] border border-[#206e46] rounded-2xl p-4 flex items-start gap-3.5">
+              <img
+                src="/logo.png?v=2"
+                alt="すいすい"
+                className="w-12 h-12 rounded-2xl object-cover shadow-md border border-[#34d399]/50 shrink-0"
+              />
+              <div className="text-xs text-[#f0fdf4] leading-relaxed">
+                <strong className="text-[#4ade80] block mb-0.5">
                   「こんにちは！あなたの息抜き相棒『すいすい』だよ！」
                 </strong>
                 あなたの普段の喫煙ペースや好きなご褒美を教えてね。あなたを責めたり怒ったりは絶対しないから、安心して選んでね！

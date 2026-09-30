@@ -1,17 +1,22 @@
 import { UserProfile, SmokingLog } from '@/types';
 
-const PROFILE_KEY = 'smok_ckansl_user_profile';
-const LOGS_KEY = 'smok_ckansl_smoking_logs';
+const PROFILE_KEY = 'suisui_user_profile_v2';
+const LOGS_KEY = 'suisui_smoking_logs_v2';
 
 export const DEFAULT_PROFILE: UserProfile = {
   id: 'user-default',
-  name: '禁煙チャレンジャー',
+  name: 'チャレンジャー',
+  partnerName: 'すいすい',
+  partnerTone: 'deredere',
   startDate: new Date().toISOString(),
   dailyCigarettesBefore: 15,
   pricePerPack: 600,
   cigarettesPerPack: 20,
-  partnerName: 'みどり',
-  brands: ['メビウス (紙巻き／レギュラー等)'],
+  brands: ['パーラメント (KSボックス等)'],
+  smokingTiming: ['morning', 'after-meal', 'work-break'],
+  quitMotive: ['health', 'partner', 'money'],
+  targetReward: '極上サウナ＆岩盤浴スパ 1日満喫',
+  targetRewardCost: 3000,
   useFuturePrice: true,
   isOnboarded: false,
 };
@@ -21,7 +26,7 @@ export function getStoredProfile(): UserProfile {
   try {
     const raw = localStorage.getItem(PROFILE_KEY);
     if (!raw) return DEFAULT_PROFILE;
-    return JSON.parse(raw);
+    return { ...DEFAULT_PROFILE, ...JSON.parse(raw) };
   } catch {
     return DEFAULT_PROFILE;
   }

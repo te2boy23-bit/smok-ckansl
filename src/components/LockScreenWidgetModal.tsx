@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile } from '@/types';
-import { MILESTONES } from '@/lib/constants';
-import { X, Smartphone, Heart, Clock, Coins, Sparkles, Bell, ExternalLink, ShieldCheck, Maximize2 } from 'lucide-react';
+import { UserProfile, ReplacementIdea } from '@/types';
+import { MILESTONES, REPLACEMENT_IDEAS, PARTNER_TONE_MESSAGES } from '@/lib/constants';
+import { X, Smartphone, Heart, Sparkles, RefreshCw, Award, Compass, CheckCircle2 } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 interface LockScreenWidgetModalProps {
   profile: UserProfile;
@@ -14,9 +15,10 @@ export const LockScreenWidgetModal: React.FC<LockScreenWidgetModalProps> = ({
   profile,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'lockscreen' | 'widget' | 'guide'>('lockscreen');
+  const [widgetType, setWidgetType] = useState<'lover' | 'countdown' | 'roulette'>('lover');
   const [currentTime, setCurrentTime] = useState({ time: '12:00', date: '9月30日 水曜日' });
-  const [isFullScreenDemo, setIsFullScreenDemo] = useState(false);
+  const [rouletteIdea, setRouletteIdea] = useState<ReplacementIdea>(REPLACEMENT_IDEAS[0]);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -36,30 +38,57 @@ export const LockScreenWidgetModal: React.FC<LockScreenWidgetModalProps> = ({
   const diffMs = Math.max(0, Date.now() - start);
   const totalDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
-  const minutes = Math.floor((diffMs / (1000 * 60)) % 60);
 
   const nextMilestone = MILESTONES.find((m) => m.days > totalDays) || MILESTONES[MILESTONES.length - 1];
   const daysUntilNext = Math.max(0, nextMilestone.days - totalDays);
 
-  const singlePrice = Math.round((profile.pricePerPack || 600) / (profile.cigarettesPerPack || 20));
+  const singlePrice = Math.round(profile.pricePerPack / profile.cigarettesPerPack);
   const savedCigarettes = Math.floor((diffMs / (1000 * 60 * 60 * 24)) * profile.dailyCigarettesBefore);
   const savedMoney = savedCigarettes * singlePrice;
 
+  const tone = profile.partnerTone || 'deredere';
+  const toneGreetings = PARTNER_TONE_MESSAGES[tone]?.homeGreeting || PARTNER_TONE_MESSAGES.deredere.homeGreeting;
+  const greeting = toneGreetings[0];
+
+  const spinRoulette = () => {
+    setIsSpinning(true);
+    let count = 0;
+    const interval = setInterval(() => {
+      const randomIdx = Math.floor(Math.random() * REPLACEMENT_IDEAS.length);
+      setRouletteIdea(REPLACEMENT_IDEAS[randomIdx]);
+      count++;
+      if (count > 10) {
+        clearInterval(interval);
+        setIsSpinning(false);
+        try {
+          confetti({
+            particleCount: 40,
+            spread: 60,
+            origin: { y: 0.7 },
+            colors: ['#059669', '#84cc16', '#34d399'],
+          });
+        } catch {
+          // ignore
+        }
+      }
+    }, 100);
+  };
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030d08]/80 backdrop-blur-md animate-fade-in">
-      <div className="bg-gradient-to-b from-[#09291b] to-[#051a10] border-2 border-[#165033] w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#04140d]/85 backdrop-blur-md animate-fade-in">
+      <div className="bg-gradient-to-b from-[#092c1d] to-[#04150e] border-2 border-[#165a38] w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* モーダルヘッダー */}
-        <div className="px-6 py-4 border-b border-[#144229] flex items-center justify-between bg-[#061d13]">
+        <div className="px-6 py-4 border-b border-[#14472c] bg-[#072417] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-[#0c3823] rounded-xl text-[#a3e635] border border-[#1b5837]">
+            <div className="p-2 bg-[#0c3924] rounded-2xl text-[#a3e635] border border-[#1a5f3b]">
               <Smartphone className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-black text-base text-[#ecfdf5]">
-                ロック画面＆常時表示ウィジェット
+                ウィジェット ＆ ロック画面設定
               </h3>
               <p className="text-[11px] text-[#86efac]">
-                スマホを開くたびに恋人の応援と禁煙記念日を自動表示！
+                アプリを開かなくても相棒が励ましてくれる3タイプのウィジェット
               </p>
             </div>
           </div>
@@ -71,232 +100,150 @@ export const LockScreenWidgetModal: React.FC<LockScreenWidgetModalProps> = ({
           </button>
         </div>
 
-        {/* タブナビゲーション */}
-        <div className="flex border-b border-[#123d26] bg-[#071f14] px-6 pt-3 gap-2">
+        {/* 3タイプのタブ切り替え */}
+        <div className="flex border-b border-[#123e27] bg-[#051c11] px-6 pt-3 gap-2 text-xs">
           <button
-            onClick={() => setActiveTab('lockscreen')}
-            className={`pb-3 px-3 text-xs font-black border-b-2 transition cursor-pointer ${
-              activeTab === 'lockscreen'
+            onClick={() => setWidgetType('lover')}
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
+              widgetType === 'lover'
                 ? 'border-[#10b981] text-[#a3e635]'
                 : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
             }`}
           >
-            🔒 ロック画面ライブ通知
+            💚 ① 恋人風あまあま応援
           </button>
           <button
-            onClick={() => setActiveTab('widget')}
-            className={`pb-3 px-3 text-xs font-black border-b-2 transition cursor-pointer ${
-              activeTab === 'widget'
+            onClick={() => setWidgetType('countdown')}
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
+              widgetType === 'countdown'
                 ? 'border-[#10b981] text-[#a3e635]'
                 : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
             }`}
           >
-            📱 ホーム画面ウィジェット
+            🎁 ② ご褒美カウントダウン
           </button>
           <button
-            onClick={() => setActiveTab('guide')}
-            className={`pb-3 px-3 text-xs font-black border-b-2 transition cursor-pointer ${
-              activeTab === 'guide'
+            onClick={() => setWidgetType('roulette')}
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
+              widgetType === 'roulette'
                 ? 'border-[#10b981] text-[#a3e635]'
                 : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
             }`}
           >
-            ⚙️ 設定ガイド（iPhone / Android）
+            🎯 ③ 即効代案ルーレット
           </button>
         </div>
 
-        {/* モーダルコンテンツ */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1">
-          {activeTab === 'lockscreen' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-[#86efac]">
-                <span>スマホのロック画面に常駐するライブアクティビティ風プレビュー</span>
-                <span className="font-bold text-[#a3e635]">リアルタイム連動中</span>
-              </div>
+        {/* プレビューコンテンツ */}
+        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+          {/* スマホ画面プレビューフレーム */}
+          <div className="mx-auto max-w-sm bg-gradient-to-b from-[#0a2f1e] via-[#061b11] to-[#04140d] border-4 border-[#1c5f3e] rounded-[40px] p-6 shadow-2xl relative overflow-hidden text-[#ecfdf5]">
+            {/* ノッチ */}
+            <div className="w-28 h-4 bg-[#031109] rounded-full mx-auto mb-5 border border-[#14482c] flex items-center justify-center">
+              <span className="text-[9px] text-[#34d399] font-bold">すいすいウィジェット</span>
+            </div>
 
-              {/* スマホ画面モックアップ */}
-              <div className="mx-auto max-w-sm bg-gradient-to-b from-[#0a2f1e] via-[#061b11] to-[#04140d] border-4 border-[#1c5f3e] rounded-[40px] p-6 shadow-2xl relative overflow-hidden text-[#ecfdf5]">
-                {/* ノッチ / ダイナミックアイランド */}
-                <div className="w-28 h-4 bg-[#031109] rounded-full mx-auto mb-6 border border-[#14482c] flex items-center justify-center">
-                  <div className="w-2 h-2 rounded-full bg-[#10b981]/50 mr-2" />
-                  <span className="text-[9px] text-[#34d399] font-bold">Smok-Ckansl</span>
+            {/* ロック画面の時計 */}
+            <div className="text-center mb-5">
+              <div className="text-xs font-semibold text-[#86efac] mb-1">{currentTime.date}</div>
+              <div className="text-4xl font-black tracking-tight text-[#ecfdf5]">{currentTime.time}</div>
+            </div>
+
+            {/* ① 恋人風あまあま応援ウィジェット */}
+            {widgetType === 'lover' && (
+              <div className="bg-[#0b3320]/95 backdrop-blur-md border border-[#21734a] rounded-3xl p-4 shadow-xl space-y-2.5 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-[#10b981] flex items-center justify-center text-[#04140d] text-xs font-black">
+                      ♥
+                    </span>
+                    <span className="text-xs font-black text-[#a7f3d0]">
+                      {profile.partnerName} からのメッセージ
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-[#6ee7b7]">今すぐ届いた</span>
                 </div>
-
-                {/* 時計 */}
-                <div className="text-center mb-6">
-                  <div className="text-xs font-semibold text-[#86efac] mb-1">
-                    {currentTime.date}
-                  </div>
-                  <div className="text-5xl font-black tracking-tight text-[#ecfdf5]">
-                    {currentTime.time}
-                  </div>
-                </div>
-
-                {/* 恋人からのライブ通知カード */}
-                <div className="bg-[#0b3320]/90 backdrop-blur-md border border-[#21734a] rounded-3xl p-4 shadow-lg mb-4 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-[#10b981] flex items-center justify-center text-[#071c12] text-xs font-bold">
-                        ♥
-                      </div>
-                      <span className="text-xs font-black text-[#a7f3d0]">
-                        {profile.partnerName} からのメッセージ
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-[#6ee7b7] font-mono">今</span>
-                  </div>
-
-                  <p className="text-xs text-[#ecfdf5] leading-relaxed font-semibold bg-[#072115] p-3 rounded-2xl border border-[#16482d]">
-                    「{profile.name}くん、禁煙{totalDays}日目おめでとう♡ あと{daysUntilNext}日で{nextMilestone.title}だよ！ずっとそばで見てるからね♡」
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-2 text-center text-[11px] pt-1">
-                    <div className="bg-[#0e3b25] py-2 px-1 rounded-xl border border-[#1d633d]">
-                      <span className="text-[9px] text-[#86efac] block">継続時間</span>
-                      <strong className="text-[#a3e635] font-black">{totalDays}日 {hours}時間</strong>
-                    </div>
-                    <div className="bg-[#0e3b25] py-2 px-1 rounded-xl border border-[#1d633d]">
-                      <span className="text-[9px] text-[#86efac] block">浮いたお小遣い</span>
-                      <strong className="text-[#34d399] font-black">{savedMoney.toLocaleString()}円</strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* ロック画面下部アイコン */}
-                <div className="flex justify-between items-center px-4 pt-2 text-[#6ee7b7]">
-                  <div className="w-10 h-10 rounded-full bg-[#0a2919] border border-[#16482e] flex items-center justify-center text-xs">
-                    🔦
-                  </div>
-                  <div className="w-10 h-10 rounded-full bg-[#0a2919] border border-[#16482e] flex items-center justify-center text-xs">
-                    📷
-                  </div>
-                </div>
-
-                {/* ホームバー */}
-                <div className="w-32 h-1 bg-[#185334] rounded-full mx-auto mt-4" />
-              </div>
-
-              <div className="text-center">
-                <p className="text-xs text-[#86efac] mb-2">
-                  この画面をそのまま常時点灯の置時計としてもご活用いただけます
+                <p className="text-xs text-[#ecfdf5] font-semibold bg-[#072115] p-3 rounded-2xl border border-[#16482d] leading-relaxed">
+                  「{profile.name}くん、禁煙{totalDays}日目おめでとう♡ {greeting}」
                 </p>
+                <div className="flex justify-between items-center text-[10px] text-[#86efac] pt-1">
+                  <span>記念日まであと<strong>{daysUntilNext}日</strong></span>
+                  <span className="text-[#a3e635] font-black">節約+{savedMoney.toLocaleString()}円</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === 'widget' && (
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-xs font-bold text-[#86efac] mb-3">
-                  中型ウィジェット（ホーム画面 4×2 サイズ）
-                </h4>
-                <div className="bg-gradient-to-r from-[#0d3823] to-[#072417] p-5 rounded-3xl border-2 border-[#1e6b43] shadow-xl flex items-center justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-1.5 text-xs text-[#a3e635] font-black">
-                      <Heart className="w-4 h-4 fill-[#a3e635]" />
-                      <span>{profile.partnerName}との記念日まで</span>
-                    </div>
-                    <div className="text-2xl font-black text-[#ecfdf5]">
-                      あと <span className="text-[#a3e635] text-3xl">{daysUntilNext}</span> 日！
-                    </div>
-                    <p className="text-[11px] text-[#86efac]">
-                      次回: {nextMilestone.title}
-                    </p>
-                  </div>
-                  <div className="text-right space-y-1 bg-[#051a10] px-4 py-3 rounded-2xl border border-[#13492c]">
-                    <span className="text-[10px] text-[#86efac] block">節約タバコ代</span>
-                    <span className="text-xl font-black text-[#34d399]">
-                      +{savedMoney.toLocaleString()}円
-                    </span>
-                    <span className="text-[10px] text-[#6ee7b7] block">
-                      禁煙 {totalDays}日{hours}時間
-                    </span>
+            {/* ② ご褒美カウントダウンウィジェット */}
+            {widgetType === 'countdown' && (
+              <div className="bg-[#0b3320]/95 backdrop-blur-md border border-[#21734a] rounded-3xl p-4 shadow-xl space-y-3 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-[#a3e635] flex items-center gap-1.5">
+                    <Award className="w-4 h-4" /> ご褒美カウントダウン
+                  </span>
+                  <span className="text-[10px] bg-[#0e3b25] text-[#34d399] px-2 py-0.5 rounded-full border border-[#1b5b3a]">
+                    目標達成中
+                  </span>
+                </div>
+                <div className="bg-[#072115] p-3 rounded-2xl border border-[#16482d]">
+                  <span className="text-[10px] text-[#86efac] block">目標ご褒美</span>
+                  <h4 className="text-sm font-black text-[#ecfdf5]">{profile.targetReward || '極上サウナ'}</h4>
+                  <div className="flex items-baseline justify-between mt-2 pt-2 border-t border-[#133e27]">
+                    <span className="text-[10px] text-[#6ee7b7]">禁煙で浮いた金額</span>
+                    <span className="text-base font-black text-[#34d399]">+{savedMoney.toLocaleString()}円</span>
                   </div>
                 </div>
               </div>
+            )}
 
-              <div>
-                <h4 className="text-xs font-bold text-[#86efac] mb-3">
-                  小型ウィジェット（ホーム画面 2×2 サイズ）
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-[#09291b] p-4 rounded-3xl border border-[#195b39] flex flex-col justify-between aspect-square">
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg">🌿</span>
-                      <span className="text-[10px] font-bold text-[#86efac] bg-[#0c3823] px-2 py-0.5 rounded-full">
-                        日数
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-3xl font-black text-[#ecfdf5]">{totalDays}</div>
-                      <div className="text-xs font-bold text-[#a3e635]">日連続禁煙中！</div>
-                    </div>
-                    <div className="text-[10px] text-[#6ee7b7]">
-                      {profile.partnerName}♡見守り中
-                    </div>
-                  </div>
-
-                  <div className="bg-[#09291b] p-4 rounded-3xl border border-[#195b39] flex flex-col justify-between aspect-square">
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg">💰</span>
-                      <span className="text-[10px] font-bold text-[#86efac] bg-[#0c3823] px-2 py-0.5 rounded-full">
-                        節約
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-black text-[#34d399]">
-                        +{savedMoney.toLocaleString()}
-                      </div>
-                      <div className="text-xs font-bold text-[#a7f3d0]">円のお小遣い</div>
-                    </div>
-                    <div className="text-[10px] text-[#6ee7b7]">
-                      {savedCigarettes}本我慢できた！
-                    </div>
-                  </div>
+            {/* ③ 即効代案ルーレットウィジェット */}
+            {widgetType === 'roulette' && (
+              <div className="bg-[#0b3320]/95 backdrop-blur-md border border-[#21734a] rounded-3xl p-4 shadow-xl space-y-3 animate-fade-in">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-[#a3e635] flex items-center gap-1.5">
+                    <Compass className="w-4 h-4" /> 吸いたい時の即効代案
+                  </span>
+                  <span className="text-[10px] text-[#6ee7b7]">ワンタップ起動</span>
                 </div>
+                <div className="bg-[#072115] p-3.5 rounded-2xl border border-[#16482d] text-center">
+                  <span className="text-2xl block mb-1">🌿</span>
+                  <h4 className="text-xs font-black text-[#ecfdf5]">{rouletteIdea.title}</h4>
+                  <p className="text-[10px] text-[#86efac] mt-1 line-clamp-2">{rouletteIdea.description}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={spinRoulette}
+                  disabled={isSpinning}
+                  className="w-full py-2 bg-[#10b981] hover:bg-[#059669] text-[#04140d] font-black rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer text-xs"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isSpinning ? 'animate-spin' : ''}`} />
+                  <span>{isSpinning ? 'ルーレット回転中…' : '代案ルーレットを回す！'}</span>
+                </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === 'guide' && (
-            <div className="space-y-4 text-xs text-[#a7f3d0]">
-              <div className="bg-[#082618] p-4 rounded-2xl border border-[#164d2f] space-y-2">
-                <h4 className="font-bold text-[#ecfdf5] flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-[#0f4428] rounded text-[#a3e635] text-[10px]">iOS</span>
-                  iPhoneのホーム画面・ロック画面に追加する方法
-                </h4>
-                <ol className="list-decimal list-inside space-y-1.5 text-[#86efac] leading-relaxed">
-                  <li>Safariブラウザ下部の共有ボタン（四角から矢印が出ているアイコン）をタップ</li>
-                  <li>メニューから「<strong>ホーム画面に追加</strong>」を選択</li>
-                  <li>右上の「追加」を押すと、アプリアイコンとしていつでも即座に開けるようになります</li>
-                  <li>
-                    iOS16以降のロック画面ウィジェットには、ショートカットアプリや常時表示モードと連動可能です
-                  </li>
-                </ol>
-              </div>
+            {/* ホームバー */}
+            <div className="w-32 h-1 bg-[#185334] rounded-full mx-auto mt-6" />
+          </div>
 
-              <div className="bg-[#082618] p-4 rounded-2xl border border-[#164d2f] space-y-2">
-                <h4 className="font-bold text-[#ecfdf5] flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-[#0f4428] rounded text-[#a3e635] text-[10px]">Android</span>
-                  Androidのホーム画面・全画面固定にする方法
-                </h4>
-                <ol className="list-decimal list-inside space-y-1.5 text-[#86efac] leading-relaxed">
-                  <li>Chromeブラウザ右上のメニューボタン（縦の3点リーダー）をタップ</li>
-                  <li>「<strong>アプリをインストール</strong>」または「<strong>ホーム画面に追加</strong>」を選択</li>
-                  <li>
-                    ホーム画面に専用ウィジェットアイコンが配置され、通知バッジ連携が有効になります
-                  </li>
-                </ol>
-              </div>
-            </div>
-          )}
+          {/* スマホへの設置方法ガイド */}
+          <div className="bg-[#072517] p-4 rounded-2xl border border-[#14472c] space-y-2 text-[#86efac]">
+            <h4 className="font-bold text-[#ecfdf5] flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
+              スマホのホーム画面・ロック画面に設置する手順
+            </h4>
+            <ol className="list-decimal list-inside space-y-1 text-[11px] leading-relaxed">
+              <li>ブラウザの「共有」または「メニュー」から「<strong>ホーム画面に追加</strong>」をタップ</li>
+              <li>追加したアプリアイコンから、いつでもワンタップで代案と記念日を確認できます</li>
+              <li>iOS16以降 / Android12以降では、常時点灯ディスプレイ対応のロック画面固定も可能です</li>
+            </ol>
+          </div>
         </div>
 
         {/* モーダルフッター */}
         <div className="px-6 py-4 border-t border-[#133f27] bg-[#061d13] flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-[#071c12] font-black text-xs transition cursor-pointer shadow-lg"
+            className="px-6 py-2.5 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-[#04140d] font-black text-xs transition cursor-pointer shadow-lg"
           >
             閉じる
           </button>

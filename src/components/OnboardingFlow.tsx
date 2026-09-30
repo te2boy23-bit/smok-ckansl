@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserProfile } from '@/types';
-import { BRAND_DATABASE } from '@/lib/constants';
-import { ShieldCheck, Check, ArrowRight, ArrowLeft, Heart, Sparkles, Flame } from 'lucide-react';
+import { UserProfile, PartnerTone } from '@/types';
+import { BRAND_DATABASE, SMOKING_TIMINGS, QUIT_MOTIVES, TARGET_REWARDS } from '@/lib/constants';
+import { ShieldCheck, Check, ArrowRight, ArrowLeft, Heart, Sparkles, CheckCircle2, Award, Zap, Compass } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface OnboardingFlowProps {
@@ -12,48 +12,57 @@ interface OnboardingFlowProps {
 }
 
 export function OnboardingFlow({ initialProfile, onComplete }: OnboardingFlowProps) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
+  // 1: 習慣アンケート (STEP 1), 2: カルテプレビュー＆アカウント登録 (STEP 2)
+  const [step, setStep] = useState<1 | 2>(1);
+
+  // STEP 1 の入力ステート
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'paper' | 'heated'>('all');
   const [useFuturePrice, setUseFuturePrice] = useState<boolean>(true);
-
-  const [selectedBrandIds, setSelectedBrandIds] = useState<string[]>([]);
-  const [customBrand, setCustomBrand] = useState('');
-  const [customBrandsList, setCustomBrandsList] = useState<string[]>([]);
+  const [selectedBrandIds, setSelectedBrandIds] = useState<string[]>(['parliament']);
   const [dailyCount, setDailyCount] = useState<number>(initialProfile.dailyCigarettesBefore || 15);
   const [pricePerPack, setPricePerPack] = useState<number>(initialProfile.pricePerPack || 600);
-  const [startDateChoice, setStartDateChoice] = useState<'today' | '3days' | 'custom'>('today');
-  const [customStartDate, setCustomStartDate] = useState(
-    new Date().toISOString().split('T')[0]
-  );
+  const [selectedTimings, setSelectedTimings] = useState<string[]>(['morning', 'after-meal', 'work-break']);
+  const [selectedMotives, setSelectedMotives] = useState<string[]>(['health', 'partner', 'money']);
+  const [selectedRewardId, setSelectedRewardId] = useState<string>('sauna');
+  const [partnerTone, setPartnerTone] = useState<PartnerTone>('deredere');
 
-  const [userName, setUserName] = useState(initialProfile.name || '');
-  const [partnerName, setPartnerName] = useState(initialProfile.partnerName || 'みどり');
+  // STEP 2 の入力ステート
+  const [userName, setUserName] = useState(initialProfile.name || '相棒チャレンジャー');
+  const [partnerName, setPartnerName] = useState(initialProfile.partnerName || 'すいすい');
+  const [authProvider, setAuthProvider] = useState<'line' | 'apple' | 'google' | 'email'>('line');
 
   const toggleBrand = (brandId: string) => {
     let nextIds: string[];
     if (selectedBrandIds.includes(brandId)) {
-      nextIds = selectedBrandIds.filter((id) => id !== brandId);
+      if (selectedBrandIds.length > 1) {
+        nextIds = selectedBrandIds.filter((id) => id !== brandId);
+      } else {
+        nextIds = selectedBrandIds;
+      }
     } else {
       nextIds = [...selectedBrandIds, brandId];
     }
     setSelectedBrandIds(nextIds);
 
-    if (nextIds.length > 0) {
-      const selectedDetails = BRAND_DATABASE.filter((b) => nextIds.includes(b.id));
-      const totalPrice = selectedDetails.reduce((sum, b) => {
-        const p = useFuturePrice && b.futurePrice ? b.futurePrice : b.currentPrice;
-        return sum + p;
-      }, 0);
-      const avgPrice = Math.round(totalPrice / selectedDetails.length);
-      setPricePerPack(avgPrice);
-    }
+    const selectedDetails = BRAND_DATABASE.filter((b) => nextIds.includes(b.id));
+    const totalPrice = selectedDetails.reduce((sum, b) => {
+      const p = useFuturePrice && b.futurePrice ? b.futurePrice : b.currentPrice;
+      return sum + p;
+    }, 0);
+    const avgPrice = Math.round(totalPrice / selectedDetails.length);
+    setPricePerPack(avgPrice);
   };
 
-  const handleAddCustomBrand = () => {
-    if (customBrand.trim() && !customBrandsList.includes(customBrand.trim())) {
-      setCustomBrandsList((prev) => [...prev, customBrand.trim()]);
-      setCustomBrand('');
-    }
+  const toggleTiming = (id: string) => {
+    setSelectedTimings((prev) =>
+      prev.includes(id) ? (prev.length > 1 ? prev.filter((t) => t !== id) : prev) : [...prev, id]
+    );
+  };
+
+  const toggleMotive = (id: string) => {
+    setSelectedMotives((prev) =>
+      prev.includes(id) ? (prev.length > 1 ? prev.filter((m) => m !== id) : prev) : [...prev, id]
+    );
   };
 
   const filteredBrands = BRAND_DATABASE.filter((b) => {
@@ -62,425 +71,484 @@ export function OnboardingFlow({ initialProfile, onComplete }: OnboardingFlowPro
     return true;
   });
 
-  const handleFinish = (e: React.FormEvent) => {
-    e.preventDefault();
+  const selectedReward = TARGET_REWARDS.find((r) => r.id === selectedRewardId) || TARGET_REWARDS[0];
 
-    let computedStartDate = new Date().toISOString();
-    if (startDateChoice === '3days') {
-      computedStartDate = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
-    } else if (startDateChoice === 'custom') {
-      computedStartDate = new Date(customStartDate).toISOString();
+  // 年間節約額などの試算
+  const singlePrice = Math.round(pricePerPack / 20);
+  const yearlySpend = dailyCount * singlePrice * 365;
+  const daysToReward = Math.ceil(selectedReward.cost / (dailyCount * singlePrice));
+
+  const handleFinish = () => {
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#059669', '#84cc16', '#34d399', '#6ee7b7', '#a3e635'],
+      });
+    } catch {
+      // ignore
     }
 
-    const brandNames = [
-      ...BRAND_DATABASE.filter((b) => selectedBrandIds.includes(b.id)).map((b) => b.name),
-      ...customBrandsList,
-    ];
+    const selectedBrandNames = BRAND_DATABASE.filter((b) => selectedBrandIds.includes(b.id)).map(
+      (b) => b.name
+    );
 
-    const finalProfile: UserProfile = {
-      ...initialProfile,
+    const newProfile: UserProfile = {
+      id: `user-${Date.now()}`,
       name: userName.trim() || 'チャレンジャー',
-      partnerName: partnerName.trim() || 'みどり',
-      brands: brandNames.length > 0 ? brandNames : ['メビウス (紙巻き／レギュラー等)'],
-      dailyCigarettesBefore: Number(dailyCount),
-      pricePerPack: Number(pricePerPack),
-      startDate: computedStartDate,
+      partnerName: partnerName.trim() || 'すいすい',
+      partnerTone,
+      startDate: new Date().toISOString(),
+      dailyCigarettesBefore: dailyCount,
+      pricePerPack,
+      cigarettesPerPack: 20,
+      brands: selectedBrandNames,
+      smokingTiming: selectedTimings,
+      quitMotive: selectedMotives,
+      targetReward: selectedReward.name,
+      targetRewardCost: selectedReward.cost,
       useFuturePrice,
       isOnboarded: true,
+      authProvider,
     };
 
-    confetti({
-      particleCount: 120,
-      spread: 80,
-      origin: { y: 0.4 },
-      colors: ['#10b981', '#34d399', '#84cc16', '#a3e635', '#6ee7b7'],
-    });
-
-    onComplete(finalProfile);
+    onComplete(newProfile);
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#04140b]/95 backdrop-blur-xl flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="w-full max-w-lg bg-gradient-to-b from-[#123924] via-[#0d2a1b] to-[#081e13] border-2 border-[#1f5e39] rounded-[36px] p-5 sm:p-7 shadow-2xl relative my-auto">
-        <div className="absolute top-0 right-0 w-44 h-44 bg-[#10b981]/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-44 h-44 bg-[#84cc16]/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 text-center mb-5">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1b4b31] border border-[#2d734c] text-xs font-black text-[#a3e635] shadow-sm mb-2.5">
-            <ShieldCheck className="w-4 h-4 text-[#10b981]" />
-            <span>Smok-Ckansl 初期セットアップ</span>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[#04140d]/95 backdrop-blur-xl flex items-center justify-center p-4">
+      <div className="bg-gradient-to-b from-[#092b1d] via-[#061f14] to-[#04150e] border-2 border-[#155335] w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden my-6">
+        {/* トップバー：相棒すいすいバナー */}
+        <div className="px-6 py-4 bg-[#072417] border-b border-[#13442a] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#059669] to-[#84cc16] flex items-center justify-center text-xl shadow-md border border-[#34d399]/40">
+              🌱
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-black text-[#ecfdf5]">
+                  すいすい（息抜き相棒）
+                </h2>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#0d3f28] text-[#a3e635] border border-[#217349]">
+                  {step === 1 ? 'STEP 1 / 2' : 'STEP 2 / 2'}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#86efac]">
+                {step === 1 ? '禁煙カルテ・習慣アンケート' : 'カルテ完成＆アカウント連携'}
+              </p>
+            </div>
           </div>
-
-          <h2 className="text-xl sm:text-2xl font-black text-[#ecfdf5] tracking-tight">
-            {step === 1 && '吸っていた銘柄を選択してください'}
-            {step === 2 && 'これまでの喫煙ペースは？'}
-            {step === 3 && '最後にログイン情報を入力'}
-          </h2>
-
-          <p className="text-xs text-[#a7f3d0] font-medium mt-1">
-            {step === 1 && '複数選択OK！選択すると最新のタバコ価格が自動計算されます'}
-            {step === 2 && '浮いたお金や撃退本数の正確な計算に使います'}
-            {step === 3 && 'あなたと応援パートナーの名前を決めてスタート！'}
-          </p>
-
-          <div className="flex items-center justify-center gap-2 mt-3.5">
-            {[1, 2, 3].map((s) => (
-              <div
-                key={s}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  s === step
-                    ? 'w-10 bg-gradient-to-r from-[#10b981] to-[#a3e635]'
-                    : s < step
-                    ? 'w-6 bg-[#255f3c]'
-                    : 'w-6 bg-[#133722]'
-                }`}
-              />
-            ))}
+          <div className="text-right text-xs text-[#6ee7b7]">
+            {step === 1 ? '質問に答えるだけ♪' : 'あと1分で完了！'}
           </div>
         </div>
 
+        {/* STEP 1: 禁煙カルテ・習慣アンケート */}
         {step === 1 && (
-          <div className="relative z-10 space-y-3.5">
-            <div className="flex items-center justify-between gap-2 p-1 bg-[#0a2317] rounded-2xl border border-[#1b4b31]">
-              <div className="flex gap-1 text-xs font-bold">
+          <div className="p-6 space-y-6">
+            {/* 相棒からのメッセージ */}
+            <div className="bg-[#0b3320] border border-[#1b5d3a] rounded-2xl p-4 flex items-start gap-3">
+              <span className="text-2xl">💚</span>
+              <div className="text-xs text-[#ecfdf5] leading-relaxed">
+                <strong className="text-[#a3e635] block mb-0.5">
+                  「こんにちは！あなたの息抜き相棒『すいすい』だよ！」
+                </strong>
+                あなたの普段の喫煙ペースや好きなご褒美を教えてね。あなたを責めたり怒ったりは絶対しないから、安心して選んでね！
+              </div>
+            </div>
+
+            {/* 1. 銘柄選択 */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-black text-[#86efac] flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-[#10b981] text-[#04140d] text-[10px] font-black flex items-center justify-center">1</span>
+                  普段吸っている銘柄（複数選択可）
+                </label>
+                <div className="flex items-center gap-1 text-[11px] bg-[#072417] p-1 rounded-xl border border-[#15462c]">
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilter('all')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                      categoryFilter === 'all' ? 'bg-[#10b981] text-[#04140d]' : 'text-[#86efac]'
+                    }`}
+                  >
+                    すべて
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilter('paper')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                      categoryFilter === 'paper' ? 'bg-[#10b981] text-[#04140d]' : 'text-[#86efac]'
+                    }`}
+                  >
+                    紙巻き
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCategoryFilter('heated')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                      categoryFilter === 'heated' ? 'bg-[#10b981] text-[#04140d]' : 'text-[#86efac]'
+                    }`}
+                  >
+                    加熱式
+                  </button>
+                </div>
+              </div>
+
+              {/* 2026年10月新価格トグル */}
+              <div className="bg-[#072517] p-3 rounded-xl border border-[#14472c] mb-3 flex items-center justify-between text-xs">
+                <div className="text-[11px] text-[#86efac]">
+                  <span className="font-bold text-[#ecfdf5]">2026年10月1日 改定後価格で試算</span>
+                  <span className="block text-[10px] text-[#6ee7b7]">加熱式銘柄の値上げ予定価格を反映</span>
+                </div>
                 <button
                   type="button"
-                  onClick={() => setCategoryFilter('all')}
-                  className={`px-3 py-1.5 rounded-xl transition ${
-                    categoryFilter === 'all'
-                      ? 'bg-[#18462f] text-[#a3e635] border border-[#2b724b]'
-                      : 'text-[#6ee7b7]'
+                  onClick={() => {
+                    const next = !useFuturePrice;
+                    setUseFuturePrice(next);
+                    if (selectedBrandIds.length > 0) {
+                      const selectedDetails = BRAND_DATABASE.filter((b) => selectedBrandIds.includes(b.id));
+                      const totalPrice = selectedDetails.reduce((sum, b) => {
+                        const p = next && b.futurePrice ? b.futurePrice : b.currentPrice;
+                        return sum + p;
+                      }, 0);
+                      setPricePerPack(Math.round(totalPrice / selectedDetails.length));
+                    }
+                  }}
+                  className={`w-12 h-6 flex items-center rounded-full p-1 transition cursor-pointer ${
+                    useFuturePrice ? 'bg-[#10b981] justify-end' : 'bg-[#0f3b25] justify-start'
                   }`}
                 >
-                  すべて
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter('paper')}
-                  className={`px-3 py-1.5 rounded-xl transition ${
-                    categoryFilter === 'paper'
-                      ? 'bg-[#18462f] text-[#a3e635] border border-[#2b724b]'
-                      : 'text-[#6ee7b7]'
-                  }`}
-                >
-                  紙巻き
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCategoryFilter('heated')}
-                  className={`px-3 py-1.5 rounded-xl transition ${
-                    categoryFilter === 'heated'
-                      ? 'bg-[#18462f] text-[#a3e635] border border-[#2b724b]'
-                      : 'text-[#6ee7b7]'
-                  }`}
-                >
-                  加熱式
+                  <div className="w-4 h-4 rounded-full bg-[#04140d]" />
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setUseFuturePrice(!useFuturePrice)}
-                className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border transition flex items-center gap-1 ${
-                  useFuturePrice
-                    ? 'bg-[#1b4b31] border-[#34d399] text-[#a3e635]'
-                    : 'bg-[#0f2e1e] border-[#1b4b31] text-[#6ee7b7]'
-                }`}
-              >
-                <Flame className="w-3 h-3 text-[#a3e635]" />
-                <span>10月新価格適用中</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-1">
-              {filteredBrands.map((brand) => {
-                const isSelected = selectedBrandIds.includes(brand.id);
-                const displayPrice = useFuturePrice && brand.futurePrice ? brand.futurePrice : brand.currentPrice;
-
-                return (
-                  <button
-                    key={brand.id}
-                    type="button"
-                    onClick={() => toggleBrand(brand.id)}
-                    className={`p-3 rounded-2xl border text-left transition-all text-xs font-bold flex items-center justify-between gap-2 active:scale-95 ${
-                      isSelected
-                        ? 'bg-[#1a4a2f] border-[#34d399] text-[#ecfdf5] shadow-md shadow-[#059669]/30'
-                        : 'bg-[#0a2317]/85 border-[#1c4d30] text-[#a7f3d0] hover:border-[#2b724b]'
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <div className="truncate text-xs font-black">{brand.name}</div>
-                      <div className="text-[10px] text-[#6ee7b7] flex items-center gap-1.5 mt-0.5">
-                        <span className="font-extrabold text-[#a3e635]">¥{displayPrice}</span>
-                        <span>• {brand.maker}</span>
-                        {brand.futurePrice && useFuturePrice && (
-                          <span className="text-[9px] px-1 rounded bg-[#092215] text-[#34d399]">
-                            改定後
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div
-                      className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+              {/* 銘柄一覧グリッド */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-[#051c11] rounded-2xl border border-[#13442a]">
+                {filteredBrands.map((brand) => {
+                  const isSelected = selectedBrandIds.includes(brand.id);
+                  const price = useFuturePrice && brand.futurePrice ? brand.futurePrice : brand.currentPrice;
+                  return (
+                    <button
+                      key={brand.id}
+                      type="button"
+                      onClick={() => toggleBrand(brand.id)}
+                      className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
                         isSelected
-                          ? 'bg-[#10b981] border-[#10b981] text-[#071c12]'
-                          : 'border-[#2d734c]'
+                          ? 'bg-[#0e3b25] border-[#22c55e] text-[#ecfdf5]'
+                          : 'bg-[#082618] border-[#14472b] text-[#86efac] hover:border-[#1d633d]'
                       }`}
                     >
-                      {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                    </div>
-                  </button>
-                );
-              })}
+                      <div className="min-w-0 pr-2">
+                        <div className="font-bold truncate text-[11px]">{brand.name}</div>
+                        <div className="text-[10px] text-[#6ee7b7]">{brand.maker} • {price}円</div>
+                      </div>
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-[#10b981] flex items-center justify-center text-[#04140d] shrink-0">
+                          <Check className="w-3 h-3 stroke-[3]" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            <div className="flex gap-2 pt-2 border-t border-[#1b4b31]">
-              <input
-                type="text"
-                value={customBrand}
-                onChange={(e) => setCustomBrand(e.target.value)}
-                placeholder="その他銘柄を入力して追加..."
-                className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#0a2317] border border-[#215a39] text-[#ecfdf5] text-xs font-bold focus:outline-none focus:border-[#10b981]"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddCustomBrand();
-                  }
-                }}
-              />
-              <button
-                type="button"
-                onClick={handleAddCustomBrand}
-                className="px-4 py-2.5 bg-[#17462b] hover:bg-[#205837] text-[#a3e635] text-xs font-bold rounded-xl border border-[#2b7149] transition"
-              >
-                追加
-              </button>
+            {/* 2. 1日の本数 */}
+            <div>
+              <label className="text-xs font-black text-[#86efac] mb-2 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#10b981] text-[#04140d] text-[10px] font-black flex items-center justify-center">2</span>
+                1日の平均喫煙本数
+              </label>
+              <div className="bg-[#072517] p-4 rounded-2xl border border-[#15462c] flex items-center gap-4">
+                <input
+                  type="range"
+                  min="1"
+                  max="60"
+                  value={dailyCount}
+                  onChange={(e) => setDailyCount(Number(e.target.value))}
+                  className="flex-1 accent-[#10b981] h-2 bg-[#0a2f1e] rounded-lg"
+                />
+                <span className="font-black text-base text-[#ecfdf5] bg-[#0c3823] px-4 py-2 rounded-xl border border-[#1a5b3a] min-w-[90px] text-center">
+                  {dailyCount} 本 / 日
+                </span>
+              </div>
             </div>
 
+            {/* 3. 吸いたくなるタイミング */}
+            <div>
+              <label className="text-xs font-black text-[#86efac] mb-2 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#10b981] text-[#04140d] text-[10px] font-black flex items-center justify-center">3</span>
+                どんな時に吸いたくなる？（複数選択可）
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {SMOKING_TIMINGS.map((timing) => {
+                  const isSelected = selectedTimings.includes(timing.id);
+                  return (
+                    <button
+                      key={timing.id}
+                      type="button"
+                      onClick={() => toggleTiming(timing.id)}
+                      className={`p-2.5 rounded-xl border text-left transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#0f4028] border-[#22c55e] text-[#ecfdf5]'
+                          : 'bg-[#082417] border-[#15472c] text-[#86efac] hover:border-[#1d633d]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5 font-bold text-[11px] mb-0.5">
+                        <span>{timing.icon}</span>
+                        <span>{timing.label}</span>
+                      </div>
+                      <p className="text-[10px] text-[#6ee7b7] line-clamp-1">{timing.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 4. やめたい動機 */}
+            <div>
+              <label className="text-xs font-black text-[#86efac] mb-2 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#10b981] text-[#04140d] text-[10px] font-black flex items-center justify-center">4</span>
+                やめたい一番の理由は？（複数選択可）
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {QUIT_MOTIVES.map((motive) => {
+                  const isSelected = selectedMotives.includes(motive.id);
+                  return (
+                    <button
+                      key={motive.id}
+                      type="button"
+                      onClick={() => toggleMotive(motive.id)}
+                      className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#0f4028] border-[#22c55e] text-[#ecfdf5]'
+                          : 'bg-[#082417] border-[#15472c] text-[#86efac] hover:border-[#1d633d]'
+                      }`}
+                    >
+                      <span className="text-lg">{motive.icon}</span>
+                      <div className="min-w-0">
+                        <div className="font-bold text-[11px]">{motive.label}</div>
+                        <div className="text-[10px] text-[#6ee7b7]">{motive.desc}</div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 5. 最初の目標ご褒美 */}
+            <div>
+              <label className="text-xs font-black text-[#86efac] mb-2 flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded-full bg-[#10b981] text-[#04140d] text-[10px] font-black flex items-center justify-center">5</span>
+                タバコ代が浮いたら最初に手に入れたいご褒美
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {TARGET_REWARDS.map((reward) => {
+                  const isSelected = selectedRewardId === reward.id;
+                  return (
+                    <button
+                      key={reward.id}
+                      type="button"
+                      onClick={() => setSelectedRewardId(reward.id)}
+                      className={`p-3 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#0f4028] border-[#a3e635] text-[#ecfdf5]'
+                          : 'bg-[#082417] border-[#15472c] text-[#86efac] hover:border-[#1d633d]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">{reward.emoji}</span>
+                        <div>
+                          <div className="font-bold text-[11px]">{reward.name}</div>
+                          <div className="text-[10px] text-[#6ee7b7]">目標額: {reward.cost.toLocaleString()}円</div>
+                        </div>
+                      </div>
+                      {isSelected && <span className="text-[#a3e635] text-xs font-black">◎</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 次へボタン */}
             <div className="pt-2">
               <button
                 type="button"
                 onClick={() => setStep(2)}
-                disabled={selectedBrandIds.length === 0 && customBrandsList.length === 0}
-                className="w-full py-3.5 bg-gradient-to-r from-[#10b981] to-[#a3e635] hover:brightness-110 active:scale-95 disabled:opacity-50 text-[#071c12] font-black text-sm rounded-2xl shadow-lg shadow-[#10b981]/25 transition flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#059669] to-[#84cc16] hover:from-[#10b981] hover:to-[#a3e635] text-[#04140d] font-black text-sm transition cursor-pointer shadow-xl flex items-center justify-center gap-2"
               >
-                <span>
-                  次へ進む ({selectedBrandIds.length + customBrandsList.length}銘柄・1箱約¥{pricePerPack})
-                </span>
-                <ArrowRight className="w-4 h-4" />
+                <span>禁煙カルテを作成して次へ</span>
+                <ArrowRight className="w-4 h-4 stroke-[3]" />
               </button>
             </div>
           </div>
         )}
 
+        {/* STEP 2: カルテ連携・新規登録 */}
         {step === 2 && (
-          <div className="relative z-10 space-y-4">
-            <div className="bg-[#0a2317]/90 border border-[#1f5636] rounded-2xl p-4">
-              <label className="block text-xs font-bold text-[#a7f3d0] mb-2 flex items-center justify-between">
-                <span>以前は1日に何本吸っていましたか？</span>
-                <span className="text-base font-black text-[#a3e635]">{dailyCount}本</span>
-              </label>
-
-              <div className="grid grid-cols-4 gap-1.5 mb-3">
-                {[
-                  { label: '少し(5本)', val: 5 },
-                  { label: '普通(10本)', val: 10 },
-                  { label: '1箱(20本)', val: 20 },
-                  { label: '多め(30本)', val: 30 },
-                ].map((item) => (
-                  <button
-                    key={item.val}
-                    type="button"
-                    onClick={() => setDailyCount(item.val)}
-                    className={`py-2 text-[11px] font-bold rounded-xl border transition-all ${
-                      dailyCount === item.val
-                        ? 'bg-[#1b4b31] border-[#34d399] text-[#a3e635]'
-                        : 'bg-[#0f2e1e] border-[#1b4b31] text-[#a7f3d0]'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+          <div className="p-6 space-y-6">
+            {/* 完成したカルテのプレビューカード */}
+            <div className="bg-gradient-to-br from-[#0c3823] to-[#072417] border-2 border-[#207248] rounded-3xl p-5 shadow-xl relative overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="p-2 bg-[#10b981]/20 rounded-xl text-lg">📋</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-[#86efac] tracking-wider uppercase">Medical Chart</span>
+                    <h3 className="font-black text-base text-[#ecfdf5]">あなたの禁煙カルテ</h3>
+                  </div>
+                </div>
+                <span className="px-3 py-1 bg-[#10b981] text-[#04140d] rounded-full text-[10px] font-black">
+                  試算完了 ✓
+                </span>
               </div>
 
-              <input
-                type="range"
-                min="1"
-                max="60"
-                value={dailyCount}
-                onChange={(e) => setDailyCount(Number(e.target.value))}
-                className="w-full accent-[#10b981]"
-              />
-            </div>
-
-            <div className="bg-[#0a2317]/90 border border-[#1f5636] rounded-2xl p-4">
-              <label className="block text-xs font-bold text-[#a7f3d0] mb-2 flex items-center justify-between">
-                <span>タバコ1箱の計算価格（銘柄から自動連動）</span>
-                <span className="text-base font-black text-[#a3e635]">¥{pricePerPack}</span>
-              </label>
-
-              <div className="grid grid-cols-4 gap-1.5">
-                {[470, 580, 600, 620].map((price) => (
-                  <button
-                    key={price}
-                    type="button"
-                    onClick={() => setPricePerPack(price)}
-                    className={`py-2 text-xs font-bold rounded-xl border transition-all ${
-                      pricePerPack === price
-                        ? 'bg-[#1b4b31] border-[#34d399] text-[#a3e635]'
-                        : 'bg-[#0f2e1e] border-[#1b4b31] text-[#a7f3d0]'
-                    }`}
-                  >
-                    ¥{price}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-[#0a2317]/90 border border-[#1f5636] rounded-2xl p-4">
-              <label className="block text-xs font-bold text-[#a7f3d0] mb-2">
-                いつから禁煙をスタートしますか？
-              </label>
-
-              <div className="grid grid-cols-3 gap-2 mb-2">
-                <button
-                  type="button"
-                  onClick={() => setStartDateChoice('today')}
-                  className={`py-2 text-xs font-bold rounded-xl border transition-all ${
-                    startDateChoice === 'today'
-                      ? 'bg-[#1b4b31] border-[#34d399] text-[#a3e635]'
-                      : 'bg-[#0f2e1e] border-[#1b4b31] text-[#a7f3d0]'
-                  }`}
-                >
-                  今日から！
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStartDateChoice('3days')}
-                  className={`py-2 text-xs font-bold rounded-xl border transition-all ${
-                    startDateChoice === '3days'
-                      ? 'bg-[#1b4b31] border-[#34d399] text-[#a3e635]'
-                      : 'bg-[#0f2e1e] border-[#1b4b31] text-[#a7f3d0]'
-                  }`}
-                >
-                  3日前から
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setStartDateChoice('custom')}
-                  className={`py-2 text-xs font-bold rounded-xl border transition-all ${
-                    startDateChoice === 'custom'
-                      ? 'bg-[#1b4b31] border-[#34d399] text-[#a3e635]'
-                      : 'bg-[#0f2e1e] border-[#1b4b31] text-[#a7f3d0]'
-                  }`}
-                >
-                  日付を選ぶ
-                </button>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4 text-center">
+                <div className="bg-[#051d12] p-3 rounded-2xl border border-[#14472c]">
+                  <span className="text-[10px] text-[#86efac] block">年間タバコ代</span>
+                  <span className="text-base font-black text-[#a3e635]">約{yearlySpend.toLocaleString()}円</span>
+                  <span className="text-[9px] text-[#6ee7b7] block">これが丸ごと浮く！</span>
+                </div>
+                <div className="bg-[#051d12] p-3 rounded-2xl border border-[#14472c]">
+                  <span className="text-[10px] text-[#86efac] block">ご褒美「{selectedReward.name.slice(0, 5)}…」</span>
+                  <span className="text-base font-black text-[#34d399]">約{daysToReward}日</span>
+                  <span className="text-[9px] text-[#6ee7b7] block">で到達可能！</span>
+                </div>
+                <div className="bg-[#051d12] p-3 rounded-2xl border border-[#14472c] col-span-2 sm:col-span-1">
+                  <span className="text-[10px] text-[#86efac] block">基準1箱価格</span>
+                  <span className="text-base font-black text-[#ecfdf5]">{pricePerPack}円</span>
+                  <span className="text-[9px] text-[#6ee7b7] block">2026年最新レート</span>
+                </div>
               </div>
 
-              {startDateChoice === 'custom' && (
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  className="w-full mt-2 px-3 py-2 rounded-xl bg-[#081e13] border border-[#215a39] text-[#ecfdf5] text-xs font-bold"
-                />
-              )}
+              <p className="text-xs text-[#a7f3d0] leading-relaxed bg-[#051c11]/80 p-3 rounded-xl border border-[#15462c]">
+                相棒「すいすい」が、あなたが煙を吸いたくなるタイミングに合わせて代案を出し、我慢した分を全力で褒めちぎります！
+              </p>
             </div>
 
-            <div className="flex gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="w-1/3 py-3.5 bg-[#143a25] hover:bg-[#1a4a30] text-[#a7f3d0] font-black text-xs rounded-2xl border border-[#26633e] transition flex items-center justify-center gap-1.5"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>戻る</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setStep(3)}
-                className="flex-1 py-3.5 bg-gradient-to-r from-[#10b981] to-[#a3e635] hover:brightness-110 active:scale-95 text-[#071c12] font-black text-sm rounded-2xl shadow-lg transition flex items-center justify-center gap-2"
-              >
-                <span>ログイン設定へ</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <form onSubmit={handleFinish} className="relative z-10 space-y-4">
-            <div className="bg-[#0a2317]/90 border border-[#1f5636] rounded-2xl p-4 space-y-3.5">
+            {/* ニックネーム＆相棒の褒めトーン */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-[#a7f3d0] mb-1">
+                <label className="text-xs font-black text-[#86efac] mb-1.5 block">
                   あなたのニックネーム
                 </label>
                 <input
                   type="text"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
-                  required
-                  placeholder="例: たくや"
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#081e13] border border-[#215a39] text-[#ecfdf5] font-bold text-sm focus:outline-none focus:border-[#10b981]"
+                  placeholder="例: たろう"
+                  className="w-full bg-[#072417] border border-[#164c2f] rounded-xl px-3.5 py-2.5 text-xs text-[#ecfdf5] focus:outline-none focus:border-[#22c55e]"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#a7f3d0] mb-1 flex items-center justify-between">
-                  <span>恋人・応援パートナーの名前</span>
-                  <span className="text-[10px] text-[#6ee7b7]">記念日をお祝いしてくれる相手</span>
+                <label className="text-xs font-black text-[#86efac] mb-1.5 block">
+                  相棒の褒めトーン
                 </label>
-                <input
-                  type="text"
-                  value={partnerName}
-                  onChange={(e) => setPartnerName(e.target.value)}
-                  required
-                  placeholder="例: みどり"
-                  className="w-full px-4 py-2.5 rounded-xl bg-[#081e13] border border-[#215a39] text-[#ecfdf5] font-bold text-sm focus:outline-none focus:border-[#10b981]"
-                />
+                <select
+                  value={partnerTone}
+                  onChange={(e) => setPartnerTone(e.target.value as PartnerTone)}
+                  className="w-full bg-[#072417] border border-[#164c2f] rounded-xl px-3.5 py-2.5 text-xs text-[#ecfdf5] focus:outline-none focus:border-[#22c55e]"
+                >
+                  <option value="deredere" className="bg-[#072417] text-[#ecfdf5]">
+                    デレデレ全肯定（甘口・愛嬌♡）
+                  </option>
+                  <option value="forest" className="bg-[#072417] text-[#ecfdf5]">
+                    癒やし系森林浴（穏やか・清流）
+                  </option>
+                  <option value="passionate" className="bg-[#072417] text-[#ecfdf5]">
+                    体育会系熱血（アツい激賞！）
+                  </option>
+                </select>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#143a25]/80 border border-[#235e3b] text-xs space-y-1.5 text-[#a7f3d0]">
-              <div className="font-bold text-[#ecfdf5] mb-1 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#a3e635]" />
-                  <span>確定する禁煙設定</span>
-                </span>
-                <span className="text-[10px] text-[#a3e635] bg-[#092215] px-2 py-0.5 rounded-full border border-[#1f5636]">
-                  {useFuturePrice ? '10月値上げ新価格' : '現行価格'}
-                </span>
-              </div>
-              <div className="truncate">
-                • 銘柄: {BRAND_DATABASE.filter((b) => selectedBrandIds.includes(b.id)).map((b) => b.name).join(', ') || customBrandsList.join(', ')}
-              </div>
-              <div>
-                • ペース: 1日 {dailyCount}本 / 1箱 ¥{pricePerPack}
+            {/* アカウント連携・クラウド同期選択（白・黒・オレンジ完全排除の緑系ボタン） */}
+            <div>
+              <label className="text-xs font-black text-[#86efac] mb-2.5 block">
+                カルテ保存とクラウド同期（ワンタップ登録）
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAuthProvider('line')}
+                  className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                    authProvider === 'line'
+                      ? 'bg-[#064e3b] border-[#10b981] text-[#ecfdf5] shadow-lg'
+                      : 'bg-[#072417] border-[#14472c] text-[#86efac] hover:border-[#1d633d]'
+                  }`}
+                >
+                  <span className="text-xl block mb-1">💬</span>
+                  <span className="text-[11px] font-black block">LINEで連携</span>
+                  <span className="text-[9px] text-[#6ee7b7]">通知も届く</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthProvider('apple')}
+                  className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                    authProvider === 'apple'
+                      ? 'bg-[#064e3b] border-[#10b981] text-[#ecfdf5] shadow-lg'
+                      : 'bg-[#072417] border-[#14472c] text-[#86efac] hover:border-[#1d633d]'
+                  }`}
+                >
+                  <span className="text-xl block mb-1">🍏</span>
+                  <span className="text-[11px] font-black block">Apple ID</span>
+                  <span className="text-[9px] text-[#6ee7b7]">iOS同期</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthProvider('google')}
+                  className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                    authProvider === 'google'
+                      ? 'bg-[#064e3b] border-[#10b981] text-[#ecfdf5] shadow-lg'
+                      : 'bg-[#072417] border-[#14472c] text-[#86efac] hover:border-[#1d633d]'
+                  }`}
+                >
+                  <span className="text-xl block mb-1">🌐</span>
+                  <span className="text-[11px] font-black block">Google</span>
+                  <span className="text-[9px] text-[#6ee7b7]">簡単ログイン</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthProvider('email')}
+                  className={`p-3 rounded-2xl border text-center transition cursor-pointer ${
+                    authProvider === 'email'
+                      ? 'bg-[#064e3b] border-[#10b981] text-[#ecfdf5] shadow-lg'
+                      : 'bg-[#072417] border-[#14472c] text-[#86efac] hover:border-[#1d633d]'
+                  }`}
+                >
+                  <span className="text-xl block mb-1">✉️</span>
+                  <span className="text-[11px] font-black block">メール</span>
+                  <span className="text-[9px] text-[#6ee7b7]">アドレス登録</span>
+                </button>
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            {/* ボトムアクション */}
+            <div className="pt-2 flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setStep(2)}
-                className="w-1/3 py-3.5 bg-[#143a25] hover:bg-[#1a4a30] text-[#a7f3d0] font-black text-xs rounded-2xl border border-[#26633e] transition flex items-center justify-center gap-1.5"
+                onClick={() => setStep(1)}
+                className="px-5 py-3.5 rounded-2xl bg-[#09291b] hover:bg-[#0c3623] text-[#86efac] font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>戻る</span>
               </button>
 
               <button
-                type="submit"
-                className="flex-1 py-3.5 bg-gradient-to-r from-[#10b981] to-[#a3e635] hover:brightness-110 active:scale-95 text-[#071c12] font-black text-sm rounded-2xl shadow-xl transition flex items-center justify-center gap-2"
+                type="button"
+                onClick={handleFinish}
+                className="flex-1 py-4 rounded-2xl bg-gradient-to-r from-[#059669] to-[#84cc16] hover:from-[#10b981] hover:to-[#a3e635] text-[#04140d] font-black text-sm transition cursor-pointer shadow-xl flex items-center justify-center gap-2"
               >
-                <Heart className="w-4 h-4 fill-[#071c12] text-[#071c12]" />
-                <span>禁煙をスタートする！</span>
+                <Sparkles className="w-4 h-4 stroke-[3]" />
+                <span>すいすいと禁煙をスタート！</span>
               </button>
             </div>
-          </form>
+          </div>
         )}
       </div>
     </div>

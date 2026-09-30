@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { UserProfile } from '@/types';
-import { Sparkles, TrendingUp, Coins, Activity, Flame } from 'lucide-react';
+import { PARTNER_TONE_MESSAGES } from '@/lib/constants';
+import { Sparkles, TrendingUp, Coins, Activity, Flame, Heart } from 'lucide-react';
 
 interface MainCounterProps {
   profile: UserProfile;
@@ -45,14 +46,34 @@ export function MainCounter({ profile, totalSmokedSinceStart }: MainCounterProps
   const savedMoney = Math.floor(savedCigarettes * pricePerCig);
   const healthPercent = Math.min(100, Math.floor((elapsed.totalSeconds / (30 * 86400)) * 100));
 
+  const tone = profile.partnerTone || 'deredere';
+  const greetings = PARTNER_TONE_MESSAGES[tone]?.homeGreeting || PARTNER_TONE_MESSAGES.deredere.homeGreeting;
+  const greeting = greetings[elapsed.days % greetings.length];
+
   return (
-    <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-b from-[#133d26] via-[#0d2c1c] to-[#081e13] border-2 border-[#1f5e39] p-6 sm:p-8 shadow-2xl">
+    <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-b from-[#0c3823] via-[#082919] to-[#051c11] border-2 border-[#195c3a] p-6 sm:p-8 shadow-2xl">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#10b981]/10 rounded-full blur-3xl pointer-events-none" />
 
+      {/* 相棒「すいすい」の全肯定応援メッセージ吹き出し */}
+      <div className="bg-[#0b3320] border border-[#207248] rounded-2xl p-4 mb-6 shadow-md flex items-center gap-3">
+        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#059669] to-[#84cc16] flex items-center justify-center text-xl shrink-0">
+          🌱
+        </div>
+        <div className="min-w-0">
+          <span className="text-[10px] font-bold text-[#86efac] flex items-center gap-1">
+            <Heart className="w-3 h-3 fill-[#34d399] text-[#34d399]" />
+            相棒「{profile.partnerName}」の全肯定メッセージ
+          </span>
+          <p className="text-xs sm:text-sm font-black text-[#ecfdf5] mt-0.5 truncate sm:whitespace-normal">
+            「{greeting}」
+          </p>
+        </div>
+      </div>
+
       <div className="relative z-10 flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1c4d32] border border-[#34d399]/40 text-xs font-black text-[#a3e635] shadow-md shadow-[#059669]/20">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#0d4027] border border-[#217349] text-xs font-black text-[#a3e635] shadow-md shadow-[#059669]/20">
           <Flame className="w-4 h-4 text-[#a3e635] fill-[#a3e635]" />
-          <span>禁煙ストリーク継続中！</span>
+          <span>煙ゼロストリーク継続中！</span>
         </div>
 
         <span className="text-xs font-bold text-[#6ee7b7] tracking-wider uppercase mt-4">
@@ -68,7 +89,7 @@ export function MainCounter({ profile, totalSmokedSinceStart }: MainCounterProps
           </span>
         </div>
 
-        <div className="flex items-center justify-center gap-3 px-5 py-2.5 rounded-2xl bg-[#0a2317]/80 border border-[#1e5434] text-xs sm:text-sm font-bold text-[#ecfdf5] shadow-inner mt-2">
+        <div className="flex items-center justify-center gap-3 px-5 py-2.5 rounded-2xl bg-[#062013]/90 border border-[#174e30] text-xs sm:text-sm font-bold text-[#ecfdf5] shadow-inner mt-2">
           <div className="flex items-baseline gap-1">
             <span className="text-base sm:text-lg font-black text-[#a3e635]">{elapsed.hours}</span>
             <span className="text-[11px] text-[#6ee7b7]">時間</span>
@@ -86,11 +107,11 @@ export function MainCounter({ profile, totalSmokedSinceStart }: MainCounterProps
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-8 pt-6 border-t border-[#1b4b31] relative z-10">
-        <div className="bg-[#103320]/80 border border-[#1f5636] hover:border-[#10b981]/50 rounded-2xl p-4 transition-all">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-8 pt-6 border-t border-[#14472c] relative z-10">
+        <div className="bg-[#0b2f1d]/90 border border-[#195636] hover:border-[#10b981]/50 rounded-2xl p-4 transition-all">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-[#6ee7b7]">浮いたお小遣い</span>
-            <div className="p-1.5 bg-[#17462b] rounded-xl text-[#a3e635]">
+            <span className="text-xs font-bold text-[#6ee7b7]">累計節約タバコ代</span>
+            <div className="p-1.5 bg-[#0f3d26] rounded-xl text-[#a3e635]">
               <Coins className="w-4 h-4" />
             </div>
           </div>
@@ -102,10 +123,10 @@ export function MainCounter({ profile, totalSmokedSinceStart }: MainCounterProps
           </div>
         </div>
 
-        <div className="bg-[#103320]/80 border border-[#1f5636] hover:border-[#10b981]/50 rounded-2xl p-4 transition-all">
+        <div className="bg-[#0b2f1d]/90 border border-[#195636] hover:border-[#10b981]/50 rounded-2xl p-4 transition-all">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-[#6ee7b7]">我慢できたタバコ</span>
-            <div className="p-1.5 bg-[#17462b] rounded-xl text-[#34d399]">
+            <div className="p-1.5 bg-[#0f3d26] rounded-xl text-[#34d399]">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
@@ -118,10 +139,10 @@ export function MainCounter({ profile, totalSmokedSinceStart }: MainCounterProps
           </div>
         </div>
 
-        <div className="bg-[#103320]/80 border border-[#1f5636] hover:border-[#10b981]/50 rounded-2xl p-4 flex flex-col justify-between transition-all">
+        <div className="bg-[#0b2f1d]/90 border border-[#195636] hover:border-[#10b981]/50 rounded-2xl p-4 flex flex-col justify-between transition-all">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-[#6ee7b7]">肺と細胞の回復</span>
-            <div className="p-1.5 bg-[#17462b] rounded-xl text-[#10b981]">
+            <div className="p-1.5 bg-[#0f3d26] rounded-xl text-[#10b981]">
               <Activity className="w-4 h-4" />
             </div>
           </div>
@@ -130,9 +151,9 @@ export function MainCounter({ profile, totalSmokedSinceStart }: MainCounterProps
               <span className="text-xs font-bold text-[#a7f3d0]">クリーン化進捗</span>
               <span className="text-lg font-black text-[#a3e635]">{healthPercent}%</span>
             </div>
-            <div className="w-full bg-[#0a2317] h-2.5 rounded-full overflow-hidden border border-[#1b4b31]">
+            <div className="w-full bg-[#051c11] h-2.5 rounded-full overflow-hidden border border-[#154b2e]">
               <div
-                className="h-full bg-gradient-to-r from-[#059669] via-[#10b981] to-[#a3e635] rounded-full transition-all duration-700"
+                className="h-full bg-gradient-to-r from-[#059669] via-[#10b981] to-[#84cc16] rounded-full transition-all duration-700"
                 style={{ width: `${Math.max(6, healthPercent)}%` }}
               />
             </div>

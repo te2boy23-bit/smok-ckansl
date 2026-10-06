@@ -38,8 +38,6 @@ export interface UserProfile {
   authProvider?: 'line' | 'apple' | 'google' | 'email';
   googleAccount?: GoogleAccount;
   isPremium?: boolean;
-  premiumPlan?: 'monthly' | 'lifetime';
-  premiumSince?: string;
 }
 
 export interface SmokingLog {

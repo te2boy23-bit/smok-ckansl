@@ -40,6 +40,7 @@ export function ReplacementBanner({ language = 'ja', onSuccess }: ReplacementBan
     return () => clearInterval(interval);
   }, [isTimerOpen, timerSeconds]);
 
+  // 呼吸フェーズのトグル（3秒吸って7秒吐く）
   useEffect(() => {
     if (!isTimerOpen) return;
     const cycle = setInterval(() => {
@@ -68,7 +69,7 @@ export function ReplacementBanner({ language = 'ja', onSuccess }: ReplacementBan
         particleCount: 70,
         spread: 70,
         origin: { y: 0.25 },
-        colors: ['#22c55e', '#4ade80', '#86efac', '#10b981', '#34d399'],
+        colors: ['#059669', '#34d399', '#84cc16', '#a3e635', '#6ee7b7'],
       });
     } catch {
       // ignore
@@ -80,7 +81,7 @@ export function ReplacementBanner({ language = 'ja', onSuccess }: ReplacementBan
   };
 
   const getIcon = (name: string) => {
-    const props = { className: 'w-6 h-6 text-[#047857]' };
+    const props = { className: 'w-6 h-6 text-[#a3e635]' };
     switch (name) {
       case 'Droplet': return <Droplet {...props} />;
       case 'Wind': return <Wind {...props} />;
@@ -95,19 +96,19 @@ export function ReplacementBanner({ language = 'ja', onSuccess }: ReplacementBan
 
   return (
     <>
-      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#dcfce7] via-[#cbf7d8] to-[#bbf7d0] border-2 border-[#4ade80] shadow-lg shadow-[#22c55e]/15 p-5 sm:p-6 transition-all">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-[#4ade80]/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#86efac]/30 rounded-full blur-2xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0c3823] via-[#082819] to-[#051c11] border-2 border-[#195c3a] shadow-xl p-5 sm:p-6 transition-all">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-[#10b981]/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#84cc16]/10 rounded-full blur-2xl pointer-events-none" />
 
         {/* 上部ステータスバッジ */}
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#a7f3d0] border border-[#34d399] text-[11px] font-black text-[#065f46] tracking-wide shadow-sm">
-            <Zap className="w-3.5 h-3.5 text-[#059669] animate-pulse" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0d3f28] border border-[#207046] text-[11px] font-black text-[#a3e635] tracking-wide shadow-sm">
+            <Zap className="w-3.5 h-3.5 text-[#a3e635] animate-pulse" />
             <span>{t.sosTitle}</span>
           </div>
 
           {savedCount > 0 && (
-            <span className="text-xs font-black px-3 py-1 rounded-full bg-[#86efac] border border-[#22c55e] text-[#022c22]">
+            <span className="text-xs font-black px-3 py-1 rounded-full bg-[#064e3b] border border-[#10b981] text-[#a7f3d0]">
               ⚡ {t.sosSuccessCount}{savedCount}{t.sosTimes}
             </span>
           )}
@@ -117,50 +118,53 @@ export function ReplacementBanner({ language = 'ja', onSuccess }: ReplacementBan
         <div className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 mt-1 transition-all duration-150 ${isAnimating ? 'opacity-40 scale-98' : 'opacity-100 scale-100'}`}>
           {/* 左側：アイコン ＆ タイトル ＆ 説明 */}
           <div className="flex items-start sm:items-center gap-3.5 min-w-0 flex-1">
-            <div className="w-13 h-13 rounded-2xl bg-[#a7f3d0] border-2 border-[#34d399] flex items-center justify-center shrink-0 shadow-inner">
+            <div className="w-13 h-13 rounded-2xl bg-[#0f4428] border-2 border-[#206f45] flex items-center justify-center shrink-0 shadow-inner">
               {getIcon(idea.iconName)}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base sm:text-lg font-black text-[#022c22] tracking-tight leading-snug">
+                <h3 className="text-base sm:text-lg font-black text-[#ecfdf5] tracking-tight leading-snug">
                   {idea.title}
                 </h3>
-                <span className="text-[10px] text-[#065f46] bg-[#a7f3d0] px-2 py-0.5 rounded-full border border-[#4ade80] font-black shrink-0">
+                <span className="text-[10px] text-[#a3e635] bg-[#072818] px-2 py-0.5 rounded-full border border-[#155030] font-bold shrink-0">
                   {t.approx}{idea.durationSeconds || 30}{t.seconds}
                 </span>
               </div>
-              <p className="text-xs sm:text-sm text-[#064e3b] font-bold mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none">
+              <p className="text-xs sm:text-sm text-[#a7f3d0] font-medium mt-1 leading-relaxed line-clamp-2 sm:line-clamp-none">
                 {idea.description}
               </p>
             </div>
           </div>
 
-          {/* 右側：ボタングループ */}
-          <div className="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-[#86efac] w-full lg:w-auto justify-end flex-wrap sm:flex-nowrap">
+          {/* 右側：ボタングループ（絶対に縮小・変形させない shrink-0 & whitespace-nowrap） */}
+          <div className="flex items-center gap-2 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-[#154b2e] w-full lg:w-auto justify-end flex-wrap sm:flex-nowrap">
+            {/* 別の代案ボタン */}
             <button
               type="button"
               onClick={handleNext}
-              className="shrink-0 whitespace-nowrap min-w-fit flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-black text-[#022c22] bg-[#bbf7d0] hover:bg-[#86efac] active:scale-95 rounded-2xl border border-[#4ade80] transition cursor-pointer shadow-sm focus:outline-none"
+              className="shrink-0 whitespace-nowrap min-w-fit flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-[#a7f3d0] bg-[#092c1c] hover:bg-[#0e3b26] active:scale-95 rounded-2xl border border-[#1a5a38] transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981]"
             >
-              <RefreshCw className="w-3.5 h-3.5 text-[#059669]" />
+              <RefreshCw className="w-3.5 h-3.5 text-[#34d399]" />
               <span>{t.nextIdea}</span>
             </button>
 
+            {/* 今すぐ起動ボタン */}
             <button
               type="button"
               onClick={handleStartPractice}
-              className="shrink-0 whitespace-nowrap min-w-fit flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-black text-[#022c22] bg-[#a7f3d0] hover:bg-[#86efac] rounded-2xl border border-[#34d399] transition cursor-pointer shadow-sm focus:outline-none"
+              className="shrink-0 whitespace-nowrap min-w-fit flex items-center justify-center gap-1.5 px-3.5 py-2.5 text-xs font-black text-[#ecfdf5] bg-[#0c4028] hover:bg-[#125334] rounded-2xl border border-[#217349] transition cursor-pointer shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981]"
             >
-              <Play className="w-3.5 h-3.5 text-[#059669]" />
+              <Play className="w-3.5 h-3.5 text-[#a3e635]" />
               <span>{t.startNow}</span>
             </button>
 
+            {/* 乗り切った！ボタン */}
             <button
               type="button"
               onClick={handleSuccess}
-              className="flex-1 sm:flex-none shrink-0 whitespace-nowrap min-w-fit flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-black text-[#dcfce7] bg-gradient-to-r from-[#16a34a] to-[#22c55e] hover:brightness-110 active:scale-95 rounded-2xl shadow-md transition cursor-pointer focus:outline-none"
+              className="flex-1 sm:flex-none shrink-0 whitespace-nowrap min-w-fit flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-black text-[#04140d] bg-gradient-to-r from-[#059669] to-[#84cc16] hover:brightness-110 active:scale-95 rounded-2xl shadow-lg transition cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981]"
             >
-              <CheckCircle2 className="w-4 h-4 text-[#dcfce7]" />
+              <CheckCircle2 className="w-4 h-4 text-[#04140d]" />
               <span>{t.managedIt}</span>
             </button>
           </div>
@@ -169,28 +173,29 @@ export function ReplacementBanner({ language = 'ja', onSuccess }: ReplacementBan
 
       {/* インタラクティブ代案タイマーモーダル */}
       {isTimerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#022c22]/70 backdrop-blur-md">
-          <div className="bg-gradient-to-b from-[#dcfce7] via-[#cbf7d8] to-[#bbf7d0] border-3 border-[#22c55e] w-full max-w-sm rounded-[32px] p-6 text-center shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#04140d]/85 backdrop-blur-md">
+          <div className="bg-gradient-to-b from-[#092c1d] to-[#04150e] border-2 border-[#165a38] w-full max-w-sm rounded-[32px] p-6 text-center shadow-2xl relative">
             <button
               onClick={() => setIsTimerOpen(false)}
-              className="absolute top-4 right-4 p-2 rounded-xl text-[#047857] hover:bg-[#a7f3d0] focus:outline-none"
+              className="absolute top-4 right-4 p-2 rounded-xl text-[#86efac] hover:bg-[#0c3621] focus:outline-none"
             >
               <X className="w-5 h-5" />
             </button>
 
             <span className="text-4xl block mb-2">🌿</span>
-            <h4 className="font-black text-base text-[#022c22] mb-1">{idea.title}</h4>
-            <p className="text-xs text-[#065f46] font-bold mb-6">{idea.description}</p>
+            <h4 className="font-black text-base text-[#ecfdf5] mb-1">{idea.title}</h4>
+            <p className="text-xs text-[#86efac] mb-6">{idea.description}</p>
 
+            {/* 呼吸サークルアニメーション */}
             <div className="relative w-36 h-36 mx-auto mb-6 flex items-center justify-center">
               <div
-                className={`absolute inset-0 rounded-full bg-gradient-to-br from-[#4ade80] to-[#22c55e] opacity-40 transition-transform duration-1000 ${
+                className={`absolute inset-0 rounded-full bg-gradient-to-br from-[#059669] to-[#84cc16] opacity-30 transition-transform duration-1000 ${
                   breathPhase === 'inhale' ? 'scale-110' : 'scale-90'
                 }`}
               />
               <div className="relative z-10 text-center">
-                <span className="text-4xl font-black text-[#15803d] block">{timerSeconds}</span>
-                <span className="text-[11px] font-black text-[#022c22]">
+                <span className="text-4xl font-black text-[#a3e635] block">{timerSeconds}</span>
+                <span className="text-[11px] font-bold text-[#ecfdf5]">
                   {breathPhase === 'inhale' ? t.inhaleText : t.exhaleText}
                 </span>
               </div>
@@ -198,7 +203,7 @@ export function ReplacementBanner({ language = 'ja', onSuccess }: ReplacementBan
 
             <button
               onClick={handleSuccess}
-              className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#16a34a] to-[#22c55e] text-[#dcfce7] font-black text-xs transition cursor-pointer shadow-lg focus:outline-none"
+              className="w-full py-3 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-[#04140d] font-black text-xs transition cursor-pointer shadow-lg focus:outline-none"
             >
               {t.finishBreath}
             </button>

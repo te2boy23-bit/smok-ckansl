@@ -110,8 +110,8 @@ export function GoogleAuthAndPremiumModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start p-3 sm:p-6 bg-[#022c22]/70 backdrop-blur-md animate-fade-in overflow-y-auto">
-      <div className="bg-gradient-to-b from-[#dcfce7] via-[#cbf7d8] to-[#bbf7d0] border-2 border-[#86efac] w-full max-w-xl rounded-[28px] sm:rounded-[36px] shadow-2xl overflow-hidden my-4 sm:my-8 flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-[#064e3b]/30 backdrop-blur-md animate-fade-in">
+      <div className="bg-gradient-to-b from-[#f0fdf4] via-[#e8fdf0] to-[#dcfce7] border-2 border-[#86efac] w-full max-w-xl rounded-[28px] sm:rounded-[36px] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* モーダルヘッダー */}
         <div className="px-5 sm:px-6 py-4 border-b-2 border-[#86efac] bg-[#bbf7d0] flex items-center justify-between">
           <div className="flex items-center gap-3">

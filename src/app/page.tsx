@@ -98,7 +98,7 @@ export default function Home() {
   const totalSavedCount = Math.max(0, expectedCigarettes - totalSmokedCount);
 
   return (
-    <div className="min-h-screen bg-[#cbf7d8] text-[#022c22] flex flex-col font-sans selection:bg-[#22c55e] selection:text-[#dcfce7] relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#dcfce7] text-[#022c22] flex flex-col font-sans selection:bg-[#22c55e] selection:text-[#dcfce7] relative overflow-x-hidden">
       {/* 爽やかなライトグリーンの若葉オーラ */}
       <div className="fixed top-0 left-1/4 w-[400px] sm:w-[700px] h-[400px] sm:h-[700px] bg-[#4ade80]/30 rounded-full blur-[160px] pointer-events-none" />
       <div className="fixed bottom-0 right-1/4 w-[350px] sm:w-[600px] h-[350px] sm:h-[600px] bg-[#86efac]/40 rounded-full blur-[160px] pointer-events-none" />

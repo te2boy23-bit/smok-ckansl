@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile, PartnerTone } from '@/types';
 import { BRAND_DATABASE, SMOKING_TIMINGS, QUIT_MOTIVES, TARGET_REWARDS } from '@/lib/constants';
 import { Check, ArrowRight, ArrowLeft, Sparkles, CheckCircle2 } from 'lucide-react';
@@ -129,12 +129,25 @@ export function OnboardingFlow({ initialProfile, onComplete }: OnboardingFlowPro
     onComplete(newProfile);
   };
 
+  // アンケート中は背面のメインページをスライド・スクロールできないように固定
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+    };
+  }, []);
+
   // プログレスバーのパーセンテージ
   const progressPercent = Math.round((currentStep / 6) * 100);
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#064e3b]/30 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fade-in">
-      <div className="bg-gradient-to-b from-[#f0fdf4] via-[#e8fdf0] to-[#dcfce7] border-2 border-[#86efac] w-full max-w-lg rounded-[28px] sm:rounded-[36px] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#064e3b]/30 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-fade-in overscroll-none touch-none select-none">
+      <div className="bg-gradient-to-b from-[#f0fdf4] via-[#e8fdf0] to-[#dcfce7] border-2 border-[#86efac] w-full max-w-lg rounded-[28px] sm:rounded-[36px] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden overscroll-contain touch-auto select-auto">
         {/* 固定トップバー */}
         <div className="shrink-0 px-4 sm:px-6 py-3.5 bg-[#bbf7d0] border-b-2 border-[#86efac]">
           <div className="flex items-center justify-between mb-2">

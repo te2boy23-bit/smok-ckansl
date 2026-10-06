@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserProfile, PartnerTone } from '@/types';
 import { BRAND_DATABASE } from '@/lib/constants';
 import { X, User, Heart, Calendar, Cigarette, Sparkles, Award } from 'lucide-react';
@@ -25,6 +25,18 @@ export const LoginProfileModal: React.FC<LoginProfileModalProps> = ({
   const [useFuturePrice, setUseFuturePrice] = useState<boolean>(profile.useFuturePrice ?? true);
   const [targetReward, setTargetReward] = useState<string>(profile.targetReward || '極上サウナ＆岩盤浴スパ 1日満喫');
   const [targetRewardCost, setTargetRewardCost] = useState<number>(profile.targetRewardCost || 3000);
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+    };
+  }, []);
 
   const calculateAveragePrice = (brands: string[], future: boolean) => {
     if (brands.length === 0) return 600;

@@ -31,7 +31,7 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
   const comfortMessages = PARTNER_TONE_MESSAGES[tone]?.shelterComfort || PARTNER_TONE_MESSAGES.deredere.shelterComfort;
   const comfortQuote = comfortMessages[Math.floor(Math.random() * comfortMessages.length)];
 
-  const singlePrice = Math.round(profile.pricePerPack / profile.cigarettesPerPack);
+  const singlePrice = Math.round((profile.pricePerPack || 600) / (profile.cigarettesPerPack || 20));
   const targetRewardCost = profile.targetRewardCost || 3000;
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
                   particleCount: 50,
                   spread: 60,
                   origin: { y: 0.7 },
-                  colors: ['#059669', '#84cc16', '#34d399'],
+                  colors: ['#22c55e', '#4ade80', '#86efac'],
                 });
               } catch {
                 // ignore
@@ -71,7 +71,7 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
         particleCount: 80,
         spread: 70,
         origin: { y: 0.6 },
-        colors: ['#059669', '#84cc16', '#34d399', '#a3e635'],
+        colors: ['#22c55e', '#4ade80', '#86efac', '#15803d'],
       });
     } catch {
       // ignore
@@ -85,62 +85,62 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#04140d]/85 backdrop-blur-md animate-fade-in">
-      <div className="bg-gradient-to-b from-[#092c1d] via-[#061f14] to-[#04140d] border-2 border-[#165a38] w-full max-w-xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-start p-3 sm:p-6 bg-[#022c22]/70 backdrop-blur-md animate-fade-in overflow-y-auto">
+      <div className="bg-gradient-to-b from-[#dcfce7] via-[#cbf7d8] to-[#bbf7d0] border-2 border-[#86efac] w-full max-w-xl rounded-[28px] sm:rounded-[36px] shadow-2xl overflow-hidden my-4 sm:my-8 flex flex-col">
         {/* モーダルヘッダー */}
-        <div className="px-6 py-4 border-b border-[#14472c] bg-[#072417] flex items-center justify-between">
+        <div className="px-5 sm:px-6 py-4 border-b-2 border-[#86efac] bg-[#bbf7d0] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-[#0c3924] rounded-2xl text-[#a3e635] border border-[#1a5f3b]">
+            <div className="p-2 bg-[#dcfce7] rounded-2xl text-[#15803d] border border-[#86efac] shadow-sm">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-base text-[#ecfdf5] flex items-center gap-2">
+              <h3 className="font-black text-sm sm:text-base text-[#022c22] flex items-center gap-2">
                 <span>救済レスキューシェルター</span>
-                <span className="text-[10px] bg-[#0d4027] text-[#34d399] px-2 py-0.5 rounded-full border border-[#1c643e]">
+                <span className="text-[10px] bg-[#dcfce7] text-[#022c22] px-2 py-0.5 rounded-full border border-[#86efac] font-black">
                   ゼロ嫌悪宣言
                 </span>
               </h3>
-              <p className="text-[11px] text-[#86efac]">
+              <p className="text-[10px] sm:text-[11px] text-[#065f46]">
                 吸ってしまっても自分を責めない！努力は1ミリも消えていません
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-[#86efac] hover:bg-[#0c3621] hover:text-[#ecfdf5] transition cursor-pointer"
+            className="p-2 rounded-xl text-[#065f46] hover:bg-[#86efac] hover:text-[#022c22] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* タブナビゲーション */}
-        <div className="flex border-b border-[#123e27] bg-[#051c11] px-6 pt-3 gap-2 text-xs">
+        <div className="flex border-b border-[#86efac] bg-[#cbf7d8] px-4 sm:px-6 pt-3 gap-2 text-xs overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveStep('stamp')}
-            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer shrink-0 ${
               activeStep === 'stamp'
-                ? 'border-[#10b981] text-[#a3e635]'
-                : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
+                ? 'border-[#15803d] text-[#022c22]'
+                : 'border-transparent text-[#065f46] hover:text-[#022c22]'
             }`}
           >
             📜 免罪符スタンプ発行
           </button>
           <button
             onClick={() => setActiveStep('detox')}
-            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer shrink-0 ${
               activeStep === 'detox'
-                ? 'border-[#10b981] text-[#a3e635]'
-                : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
+                ? 'border-[#15803d] text-[#022c22]'
+                : 'border-transparent text-[#065f46] hover:text-[#022c22]'
             }`}
           >
             💧 3分デトックスミッション
           </button>
           <button
             onClick={() => setActiveStep('revenge')}
-            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer ${
+            className={`pb-2.5 px-3 font-black border-b-2 transition cursor-pointer shrink-0 ${
               activeStep === 'revenge'
-                ? 'border-[#10b981] text-[#a3e635]'
-                : 'border-transparent text-[#6ee7b7] hover:text-[#a7f3d0]'
+                ? 'border-[#15803d] text-[#022c22]'
+                : 'border-transparent text-[#065f46] hover:text-[#022c22]'
             }`}
           >
             🎯 ポジティブリベンジ換算
@@ -148,57 +148,59 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
         </div>
 
         {/* コンテンツエリア */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
+        <div className="p-5 sm:p-6 space-y-5 flex-1 text-xs">
           {/* 1. 免罪符スタンプ発行 */}
           {activeStep === 'stamp' && (
             <div className="space-y-4">
-              <div className="bg-[#0b3320] border-2 border-[#1c643e] rounded-3xl p-5 shadow-lg relative overflow-hidden">
+              <div className="bg-[#e8fdf0] border-2 border-[#86efac] rounded-3xl p-5 shadow-sm relative overflow-hidden">
                 <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-2xl bg-[#10b981] text-[#04140d] flex items-center justify-center font-black text-xl shrink-0">
-                    🌱
-                  </div>
+                  <img
+                    src="/logo.png?v=2"
+                    alt="すいすい"
+                    className="w-10 h-10 rounded-2xl object-cover shrink-0 shadow-sm border border-[#86efac]"
+                  />
                   <div>
-                    <span className="text-[10px] font-bold text-[#86efac] block">
+                    <span className="text-[10px] font-black text-[#047857] block">
                       息抜き相棒「{profile.partnerName}」より
                     </span>
-                    <p className="text-xs font-semibold text-[#ecfdf5] leading-relaxed mt-0.5">
+                    <p className="text-xs font-bold text-[#022c22] leading-relaxed mt-0.5">
                       「{comfortQuote}」
                     </p>
                   </div>
                 </div>
 
                 {/* 免罪符スタンプ表示 */}
-                <div className="bg-[#051c11] border-2 border-dashed border-[#1f6b43] rounded-2xl p-4 text-center mt-3">
+                <div className="bg-[#dcfce7] border-2 border-dashed border-[#4ade80] rounded-2xl p-4 text-center mt-3 shadow-inner">
                   <span className="text-3xl block mb-2">🌿✨</span>
-                  <h4 className="text-sm font-black text-[#a3e635] mb-1">
+                  <h4 className="text-sm font-black text-[#022c22] mb-1">
                     【公認免罪符】努力持続ステータス
                   </h4>
-                  <p className="text-[11px] text-[#86efac] max-w-sm mx-auto">
+                  <p className="text-[11px] text-[#065f46] max-w-sm mx-auto font-medium">
                     今まで吸わずに耐えた時間と、肺が綺麗になった実績は一切消去されません。堂々とここから継続してください！
                   </p>
                 </div>
               </div>
 
               {/* 吸った本数の安心記録 */}
-              <div className="bg-[#072417] p-4 rounded-2xl border border-[#14472c]">
-                <label className="text-xs font-bold text-[#86efac] mb-2 block">
+              <div className="bg-[#e8fdf0] p-4 rounded-2xl border border-[#86efac] shadow-sm">
+                <label className="text-xs font-black text-[#022c22] mb-2 block">
                   もし吸ってしまったら正直に本数を記録（自分を責めないで！）
                 </label>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setCountInput(Math.max(1, countInput - 1))}
-                    className="w-9 h-9 rounded-xl bg-[#0b3621] text-[#ecfdf5] font-black hover:bg-[#10b981] hover:text-[#04140d] transition"
+                    className="w-9 h-9 rounded-xl bg-[#bbf7d0] text-[#022c22] font-black hover:bg-[#86efac] transition border border-[#86efac] shadow-sm"
                   >
                     -
                   </button>
-                  <span className="font-black text-lg text-[#ecfdf5] px-4 py-1.5 bg-[#051c11] rounded-xl border border-[#164d2f]">
+                  <span className="font-black text-lg text-[#022c22] px-4 py-1.5 bg-[#dcfce7] rounded-xl border border-[#86efac]">
                     {countInput} 本
                   </span>
                   <button
                     type="button"
                     onClick={() => setCountInput(countInput + 1)}
-                    className="w-9 h-9 rounded-xl bg-[#0b3621] text-[#ecfdf5] font-black hover:bg-[#10b981] hover:text-[#04140d] transition"
+                    className="w-9 h-9 rounded-xl bg-[#bbf7d0] text-[#022c22] font-black hover:bg-[#86efac] transition border border-[#86efac] shadow-sm"
                   >
                     +
                   </button>
@@ -207,10 +209,10 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
                     type="button"
                     onClick={handleIssueStamp}
                     disabled={hasIssuedStamp}
-                    className={`ml-auto px-4 py-2.5 rounded-xl font-black transition cursor-pointer flex items-center gap-1.5 ${
+                    className={`ml-auto px-4 py-2.5 rounded-xl font-black transition cursor-pointer flex items-center gap-1.5 border border-[#86efac] ${
                       hasIssuedStamp
-                        ? 'bg-[#0f4428] text-[#86efac] border border-[#1d6b41]'
-                        : 'bg-[#10b981] text-[#04140d] hover:bg-[#059669] shadow-md'
+                        ? 'bg-[#bbf7d0] text-[#047857]'
+                        : 'bg-gradient-to-r from-[#22c55e] to-[#4ade80] text-[#022c22] shadow-sm hover:brightness-105'
                     }`}
                   >
                     <Check className="w-4 h-4 stroke-[3]" />
@@ -226,14 +228,14 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="text-xs font-black text-[#ecfdf5]">
+                  <h4 className="text-xs font-black text-[#022c22]">
                     3分間のリカバリーミッション
                   </h4>
-                  <p className="text-[11px] text-[#86efac]">
+                  <p className="text-[11px] text-[#065f46]">
                     タバコの急激な欲求波は約3分で去ります。ミッションをこなして乗り切ろう！
                   </p>
                 </div>
-                <span className="text-[10px] text-[#34d399] font-bold bg-[#072818] px-2.5 py-1 rounded-full border border-[#164d2f]">
+                <span className="text-[10px] text-[#022c22] font-black bg-[#bbf7d0] px-2.5 py-1 rounded-full border border-[#86efac]">
                   完了: {completedMissions.length} / {RESCUE_MISSIONS.length}
                 </span>
               </div>
@@ -248,39 +250,39 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
                       key={mission.id}
                       className={`p-4 rounded-2xl border transition flex items-center justify-between gap-3 ${
                         isCompleted
-                          ? 'bg-[#0b3320] border-[#22c55e]'
+                          ? 'bg-[#bbf7d0] border-[#15803d]'
                           : isCurrent
-                          ? 'bg-[#0e3b25] border-[#a3e635] shadow-lg'
-                          : 'bg-[#072417] border-[#14472c]'
+                          ? 'bg-[#dcfce7] border-[#22c55e] shadow-md'
+                          : 'bg-[#e8fdf0] border-[#86efac]'
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <span className="text-2xl p-2 bg-[#051c11] rounded-xl border border-[#15462c]">
+                        <span className="text-2xl p-2 bg-[#bbf7d0] rounded-xl border border-[#86efac]">
                           {mission.emoji}
                         </span>
                         <div>
                           <div className="flex items-center gap-2">
-                            <h5 className="font-bold text-xs text-[#ecfdf5]">{mission.title}</h5>
-                            <span className="text-[10px] text-[#86efac]">約{mission.durationSeconds}秒</span>
+                            <h5 className="font-black text-xs text-[#022c22]">{mission.title}</h5>
+                            <span className="text-[10px] text-[#047857] font-bold">約{mission.durationSeconds}秒</span>
                           </div>
-                          <p className="text-[11px] text-[#6ee7b7] mt-0.5">{mission.description}</p>
+                          <p className="text-[11px] text-[#065f46] mt-0.5">{mission.description}</p>
                         </div>
                       </div>
 
                       <div>
                         {isCompleted ? (
-                          <span className="px-3 py-1.5 rounded-xl bg-[#092c1c] text-[#34d399] font-black text-[11px] border border-[#195a38] flex items-center gap-1">
+                          <span className="px-3 py-1.5 rounded-xl bg-[#22c55e] text-[#022c22] font-black text-[11px] border border-[#15803d] flex items-center gap-1 shadow-sm">
                             <CheckCircle2 className="w-3.5 h-3.5" /> 完了
                           </span>
                         ) : isCurrent ? (
-                          <div className="px-4 py-1.5 rounded-xl bg-[#10b981] text-[#04140d] font-black text-sm animate-pulse">
+                          <div className="px-4 py-1.5 rounded-xl bg-[#22c55e] text-[#022c22] font-black text-sm animate-pulse border border-[#15803d]">
                             {timerSeconds}秒
                           </div>
                         ) : (
                           <button
                             type="button"
                             onClick={() => startMission(mission)}
-                            className="px-3 py-1.5 rounded-xl bg-[#0b3823] hover:bg-[#10b981] hover:text-[#04140d] text-[#86efac] font-bold text-xs transition border border-[#1a5e3a] flex items-center gap-1 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-[#bbf7d0] hover:bg-[#86efac] text-[#022c22] font-black text-xs transition border border-[#86efac] flex items-center gap-1 cursor-pointer shadow-sm"
                           >
                             <Play className="w-3.5 h-3.5" /> 開始
                           </button>
@@ -296,30 +298,30 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
           {/* 3. ポジティブリベンジ換算 */}
           {activeStep === 'revenge' && (
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-[#0d3b25] to-[#072417] p-5 rounded-3xl border border-[#1a603b]">
-                <span className="text-[10px] font-bold text-[#86efac] tracking-wider uppercase block mb-1">
+              <div className="bg-[#e8fdf0] p-5 rounded-3xl border-2 border-[#86efac] shadow-sm">
+                <span className="text-[10px] font-bold text-[#047857] tracking-wider uppercase block mb-1">
                   Positive Revenge
                 </span>
-                <h4 className="text-sm font-black text-[#ecfdf5] mb-2">
+                <h4 className="text-sm font-black text-[#022c22] mb-2">
                   目標ご褒美「{profile.targetReward || '極上サウナ'}」へのリベンジ進捗
                 </h4>
-                <p className="text-[11px] text-[#a7f3d0] leading-relaxed mb-4">
+                <p className="text-[11px] text-[#065f46] leading-relaxed mb-4">
                   吸ってしまった1本は約{singlePrice}円ですが、次に我慢する1本ごとに確実に目標ご褒美へ近づきます！
                 </p>
 
                 {/* プログレスバー */}
-                <div className="space-y-1.5 bg-[#051c11] p-3.5 rounded-2xl border border-[#14472c]">
-                  <div className="flex justify-between text-[11px] font-bold">
-                    <span className="text-[#86efac]">ご褒美目標額: {targetRewardCost.toLocaleString()}円</span>
-                    <span className="text-[#a3e635]">あと少しで到達！</span>
+                <div className="space-y-1.5 bg-[#dcfce7] p-3.5 rounded-2xl border border-[#86efac]">
+                  <div className="flex justify-between text-[11px] font-black">
+                    <span className="text-[#065f46]">ご褒美目標額: {targetRewardCost.toLocaleString()}円</span>
+                    <span className="text-[#15803d]">あと少しで到達！</span>
                   </div>
-                  <div className="w-full h-3 bg-[#082819] rounded-full overflow-hidden p-0.5 border border-[#13462b]">
+                  <div className="w-full h-3 bg-[#bbf7d0] rounded-full overflow-hidden p-0.5 border border-[#86efac]">
                     <div
-                      className="h-full bg-gradient-to-r from-[#059669] via-[#34d399] to-[#84cc16] rounded-full"
+                      className="h-full bg-gradient-to-r from-[#22c55e] to-[#4ade80] rounded-full"
                       style={{ width: '65%' }}
                     />
                   </div>
-                  <span className="text-[10px] text-[#6ee7b7] block text-right">
+                  <span className="text-[10px] text-[#047857] block text-right font-bold">
                     この調子で今日乗り切れば一気に前進！
                   </span>
                 </div>
@@ -329,10 +331,10 @@ export const RescueShelterModal: React.FC<RescueShelterModalProps> = ({
         </div>
 
         {/* フッター */}
-        <div className="px-6 py-4 border-t border-[#133f27] bg-[#061d13] flex justify-end">
+        <div className="px-5 sm:px-6 py-4 border-t-2 border-[#86efac] bg-[#bbf7d0] flex justify-end">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-2xl bg-[#10b981] hover:bg-[#059669] text-[#04140d] font-black text-xs transition cursor-pointer shadow-lg"
+            className="px-6 py-2.5 rounded-2xl bg-[#22c55e] hover:bg-[#16a34a] text-[#022c22] font-black text-xs transition cursor-pointer shadow-md border border-[#86efac]"
           >
             シェルターを出てすいすい進む！
           </button>
